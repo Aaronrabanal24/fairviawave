@@ -22,6 +22,10 @@ export function getServiceRoleClient() {
     throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
   }
 
+  if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+  }
+
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
