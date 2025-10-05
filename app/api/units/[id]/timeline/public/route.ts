@@ -49,6 +49,15 @@ export async function GET(
       return NextResponse.json({ error: 'Unit not published' }, { status: 403 })
     }
 
+    // Optional: increment daily public views (guarded)
+    try {
+      await prisma.$executeRaw`INSERT INTO public.public_views_daily ("unitId", day, count)
+        VALUES (${id}, CURRENT_DATE, 1)
+        ON CONFLICT ("unitId", day) DO UPDATE SET count = public.public_views_daily.count + 1`
+    } catch (e) {
+      // table may not exist; ignore
+    }
+
     const [events, totalEvents] = await Promise.all([
       prisma.event.findMany({
         where: { unitId: id, visibility: 'public' },

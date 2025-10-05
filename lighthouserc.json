@@ -1,0 +1,16 @@
+{
+  "ci": {
+    "collect": {
+      "url": ["$LHCI_URL"],
+      "numberOfRuns": 3
+    },
+    "assert": {
+      "assertions": {
+        "first-contentful-paint": ["warn", { "maxNumericValue": 1500 }],
+        "interactive": ["warn", { "maxNumericValue": 2000 }],
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }]
+      }
+    }
+  }
+}
+

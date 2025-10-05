@@ -11,7 +11,8 @@
     "prisma:migrate": "prisma migrate dev",
     "seed": "prisma db seed",
     "postinstall": "prisma generate",
-    "test": "vitest run"
+    "test": "vitest run",
+    "e2e": "playwright test"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

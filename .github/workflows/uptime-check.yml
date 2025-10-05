@@ -136,3 +136,43 @@ PY
           echo "🚨 Production health check failed!"
           echo "Check the logs above for details"
           # Add notification logic here (Slack, Discord, email, etc.)
+
+  quality-checks:
+    needs: health-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install project deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Install test tooling (no-save)
+        run: |
+          npm install --no-save @playwright/test @axe-core/playwright @lhci/cli
+
+      - name: E2E (Playwright)
+        env:
+          E2E_BASE_URL: "${{ secrets.PRODUCTION_URL }}"
+          E2E_UNIT_ID: "${{ secrets.E2E_UNIT_ID }}"
+          E2E_UNIT_TOKEN: "${{ secrets.E2E_UNIT_TOKEN }}"
+        run: npm run e2e
+
+      - name: A11y (axe)
+        env:
+          E2E_BASE_URL: "${{ secrets.PRODUCTION_URL }}"
+          E2E_UNIT_ID: "${{ secrets.E2E_UNIT_ID }}"
+          E2E_UNIT_TOKEN: "${{ secrets.E2E_UNIT_TOKEN }}"
+        run: npm run e2e -- tests/a11y-public.spec.ts
+
+      - name: Lighthouse budgets
+        env:
+          LHCI_URL: "${{ secrets.PRODUCTION_URL }}/u/${{ secrets.E2E_UNIT_ID }}?token=${{ secrets.E2E_UNIT_TOKEN }}"
+        run: npx lhci autorun --config=lighthouserc.json
