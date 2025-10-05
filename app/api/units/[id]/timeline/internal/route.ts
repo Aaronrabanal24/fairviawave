@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/db'
 
 // GET /api/units/:id/timeline/internal - Internal timeline (requires API key)
 export async function GET(
@@ -21,7 +19,10 @@ export async function GET(
       where: { id },
       include: {
         events: {
-          orderBy: { createdAt: 'asc' },
+          orderBy: [
+            { ts: 'asc' },
+            { createdAt: 'asc' },
+          ],
         },
       },
     })

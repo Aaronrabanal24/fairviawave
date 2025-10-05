@@ -32,11 +32,16 @@ model Event {
   content     String?
   metadata    Json?
   visibility  String   @default("internal") // public, internal
+  actor       String?
+  ts          DateTime @default(now())
+  contentHash String
+  chainHash   String
   createdAt   DateTime @default(now())
 
   unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
   @@index([unitId])
+  @@index([unitId, ts])
   @@index([visibility])
   @@map("events")
 }

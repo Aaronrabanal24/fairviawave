@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { createSupabaseServer } from '@/lib/supabase/server'
-
-const prisma = new PrismaClient()
+import { appendEvent } from '@/lib/events'
+import { prisma } from '@/lib/db'
 
 // GET /api/units - List all units
 export async function GET() {
@@ -33,6 +32,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 })
     }
 
+    const actor = user.email ?? user.id
     const unit = await prisma.unit.create({
       data: {
         name,
@@ -41,14 +41,13 @@ export async function POST(request: Request) {
       },
     })
 
-    // Create initial event
-    await prisma.event.create({
-      data: {
-        unitId: unit.id,
-        type: 'status_change',
-        content: 'Unit created',
-        visibility: 'internal',
-      },
+    // Create initial event with chain integrity
+    await appendEvent({
+      unitId: unit.id,
+      type: 'status_change',
+      content: 'Unit created',
+      visibility: 'internal',
+      actor,
     })
 
     return NextResponse.json(unit, { status: 201 })

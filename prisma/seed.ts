@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { appendEvent } from '../lib/events'
 
 const prisma = new PrismaClient()
 
@@ -24,31 +25,31 @@ async function main() {
   })
 
   // Create sample events
-  await prisma.event.create({
-    data: {
-      unitId: unit1.id,
-      type: 'status_change',
-      content: 'Unit created',
-      visibility: 'internal',
-    },
+  await appendEvent({
+    unitId: unit1.id,
+    type: 'status_change',
+    content: 'Unit created',
+    visibility: 'internal',
+    actor: 'seed-script',
+    client: prisma,
   })
 
-  await prisma.event.create({
-    data: {
-      unitId: unit2.id,
-      type: 'status_change',
-      content: 'Unit published',
-      visibility: 'public',
-    },
+  await appendEvent({
+    unitId: unit2.id,
+    type: 'status_change',
+    content: 'Unit published',
+    visibility: 'public',
+    actor: 'seed-script',
+    client: prisma,
   })
 
-  await prisma.event.create({
-    data: {
-      unitId: unit2.id,
-      type: 'comment',
-      content: 'This is a public comment on the published unit',
-      visibility: 'public',
-    },
+  await appendEvent({
+    unitId: unit2.id,
+    type: 'comment',
+    content: 'This is a public comment on the published unit',
+    visibility: 'public',
+    actor: 'seed-script',
+    client: prisma,
   })
 
   console.log('Seeding finished.')

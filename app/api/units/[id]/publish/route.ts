@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { createSupabaseServer } from '@/lib/supabase/server'
 import QRCode from 'qrcode'
-
-const prisma = new PrismaClient()
+import { appendEvent } from '@/lib/events'
+import { prisma } from '@/lib/db'
 
 // POST /api/units/:id/publish - Publish a unit (requires auth)
 export async function POST(
@@ -38,13 +37,13 @@ export async function POST(
     })
 
     // Create publish event
-    await prisma.event.create({
-      data: {
-        unitId: id,
-        type: 'status_change',
-        content: 'Unit published',
-        visibility: 'public',
-      },
+    const actor = user.email ?? user.id
+    await appendEvent({
+      unitId: id,
+      type: 'status_change',
+      content: 'Unit published',
+      visibility: 'public',
+      actor,
     })
 
     // Generate public URL

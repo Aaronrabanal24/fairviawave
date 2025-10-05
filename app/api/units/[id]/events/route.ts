@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { createSupabaseServer } from '@/lib/supabase/server'
-
-const prisma = new PrismaClient()
+import { appendEvent } from '@/lib/events'
+import { prisma } from '@/lib/db'
 
 // POST /api/units/:id/events - Add event to unit (requires auth)
 export async function POST(
@@ -19,7 +18,7 @@ export async function POST(
   try {
     const { id } = params
     const body = await request.json()
-    const { type, content, visibility = 'internal', metadata } = body
+    const { type, content, visibility = 'internal', metadata, ts } = body
 
     if (!type || !content) {
       return NextResponse.json(
@@ -36,14 +35,23 @@ export async function POST(
       return NextResponse.json({ error: 'Unit not found' }, { status: 404 })
     }
 
-    const event = await prisma.event.create({
-      data: {
-        unitId: id,
-        type,
-        content,
-        visibility,
-        metadata: metadata || null,
-      },
+    const actor = user.email ?? user.id
+    let eventTs: Date | undefined
+    if (ts) {
+      const parsed = new Date(ts)
+      if (!Number.isNaN(parsed.getTime())) {
+        eventTs = parsed
+      }
+    }
+
+    const event = await appendEvent({
+      unitId: id,
+      type,
+      content,
+      visibility,
+      metadata: metadata ?? null,
+      actor,
+      ts: eventTs,
     })
 
     return NextResponse.json(event, { status: 201 })
