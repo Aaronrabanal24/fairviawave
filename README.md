@@ -210,6 +210,37 @@ See [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md) for detailed steps.
 
 ---
 
+## ✅ Verify Deployment
+
+After deploying (or when testing locally with `PROD_URL=http://localhost:3000`):
+
+```bash
+# Health
+curl -s "$PROD_URL/api/health" | jq .
+
+# Metrics summary
+curl -s "$PROD_URL/api/metrics/summary" | jq .
+
+# Public page (open in browser)
+# macOS
+open "$PROD_URL/u/<UNIT_ID>?token=<TOKEN>"
+# Linux
+xdg-open "$PROD_URL/u/<UNIT_ID>?token=<TOKEN>"
+# Windows (PowerShell)
+start "$PROD_URL/u/<UNIT_ID>?token=<TOKEN>"
+
+# Chain integrity verification
+curl -s "$PROD_URL/api/units/<UNIT_ID>/verify" | jq .
+```
+
+Expected:
+- Health returns `{ ok: true }`
+- Metrics return integers and `published_rate`
+- Public page renders the timeline UI and paginates
+- Chain verify returns `ok: true` (older data may need backfill)
+
+---
+
 ## 🔒 Security
 
 ### Implemented
