@@ -32,7 +32,7 @@ jobs:
             exit 0
           fi
 
-          response=$(curl -s -w "%{http_code}" -o /tmp/response.json "$PRODUCTION_URL/api/health")
+          response=$(curl -sSL -w "%{http_code}" -o /tmp/response.json "$PRODUCTION_URL/api/health")
 
           if [ "$response" != "200" ]; then
             echo "❌ Health check failed with status: $response"
@@ -51,7 +51,7 @@ jobs:
 
       - name: Check Metrics Summary Thresholds
         env:
-          METRICS_URL: "$PRODUCTION_URL/api/metrics/summary"
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
         run: |
           python - <<'PY'
           import json
@@ -61,7 +61,11 @@ jobs:
           import urllib.error
           import urllib.request
 
-          url = os.environ["METRICS_URL"]
+          base = os.environ.get("PRODUCTION_URL", "").rstrip('/')
+          if not base:
+              print("Missing PRODUCTION_URL; skipping metrics check.")
+              sys.exit(0)
+          url = f"{base}/api/metrics/summary"
 
 
           def timed_fetch() -> tuple[int, bytes, float]:
