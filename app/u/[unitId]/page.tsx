@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { absoluteUrl } from '@/lib/absolute-url'
 
 export const dynamic = 'force-dynamic'
 
@@ -54,10 +55,11 @@ export default async function PublicTimelinePage({
   const page = Math.max(1, parseInt(String(searchParams.page ?? '1'), 10) || 1)
   const pageSize = Math.min(50, Math.max(1, parseInt(String(searchParams.page_size ?? '20'), 10) || 20))
 
-  const res = await fetch(
-    `/api/units/${encodeURIComponent(params.unitId)}/timeline/public?page=${page}&page_size=${pageSize}`,
-    { cache: 'no-store' }
+  const url = absoluteUrl(
+    `/api/units/${encodeURIComponent(params.unitId)}/timeline/public?page=${page}&page_size=${pageSize}`
   )
+
+  const res = await fetch(url, { cache: 'no-store' })
 
   if (!res.ok) {
     return (
