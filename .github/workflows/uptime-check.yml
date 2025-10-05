@@ -10,6 +10,19 @@ jobs:
   health-check:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
       - name: Check Production Health
         run: |
           response=$(curl -s -w "%{http_code}" -o /tmp/response.json "${{ secrets.PRODUCTION_URL }}/api/health")
@@ -103,6 +116,19 @@ if p95_latency > 500:
 
 print("✅ Metrics thresholds passed")
 PY
+
+      - name: Public timeline smoke
+        env:
+          PRODUCTION_URL: "${{ secrets.PRODUCTION_URL }}"
+          PUBLIC_UNIT_ID: "${{ secrets.PUBLIC_UNIT_ID }}"
+          PUBLIC_UNIT_TOKEN: "${{ secrets.PUBLIC_UNIT_TOKEN }}"
+        run: |
+          curl -fsS "$PRODUCTION_URL/api/health" >/dev/null
+          if [ -n "$PUBLIC_UNIT_ID" ] && [ -n "$PUBLIC_UNIT_TOKEN" ]; then
+            curl -fsS "$PRODUCTION_URL/api/units/$PUBLIC_UNIT_ID/timeline/public?token=$PUBLIC_UNIT_TOKEN" >/dev/null
+          else
+            echo "Skipping authenticated public timeline smoke; secrets not configured."
+          fi
 
       - name: Notify on Failure
         if: failure()

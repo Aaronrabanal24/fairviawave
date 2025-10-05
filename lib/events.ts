@@ -1,6 +1,6 @@
 import type { Prisma, Event } from '@prisma/client'
 import { prisma } from '@/lib/db'
-import { chainHash, eventContentHash } from '@/lib/hash'
+import { chainHash, eventContentHash, type Json } from '@/lib/hash'
 
 export type AppendEventInput = {
   unitId: string
@@ -40,7 +40,7 @@ export async function appendEvent({
     type,
     actor,
     ts: tsIso,
-    metadata: metadata as unknown,
+    metadata: (metadata ?? undefined) as Json | undefined,
   })
   const chainHashValue = chainHash(previous?.chainHash ?? null, contentHash)
 
@@ -49,7 +49,7 @@ export async function appendEvent({
       unitId,
       type,
       content,
-      metadata,
+      metadata: (metadata ?? undefined) as Prisma.InputJsonValue | undefined,
       visibility,
       actor,
       ts,

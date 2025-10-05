@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
+import Image from 'next/image'
 
 const MetricsCard = dynamic(() => import('./metrics'), { ssr: false })
 
@@ -38,7 +39,7 @@ export default function DashboardPage() {
       setLoading(false)
     }
     loadUser()
-  }, [])
+  }, [supabase.auth])
 
   const fetchUnits = async () => {
     const res = await fetch('/api/units')
@@ -170,7 +171,7 @@ export default function DashboardPage() {
             </p>
             {qrDataUrl && (
               <div className="mt-4">
-                <img src={qrDataUrl} alt="QR Code" className="border" />
+                <Image src={qrDataUrl} alt="QR Code" width={256} height={256} className="border" />
               </div>
             )}
           </div>

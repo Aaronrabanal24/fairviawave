@@ -25,17 +25,17 @@ export async function GET() {
           LIMIT 1
         )
       SELECT
-        (SELECT count(*) FROM units) AS total_units,
-        (SELECT count(*) FROM published_units) AS published_units,
-        (SELECT count(*) FROM units WHERE "createdAt" >= now() - interval '7 days') AS units_last_7d,
-        (SELECT count(*) FROM units WHERE "createdAt" >= now() - interval '1 day') AS units_last_24h,
+        (SELECT count(*)::int FROM units) AS total_units,
+        (SELECT count(*)::int FROM published_units) AS published_units,
+        (SELECT count(*)::int FROM units WHERE "createdAt" >= now() - interval '7 days') AS units_last_7d,
+        (SELECT count(*)::int FROM units WHERE "createdAt" >= now() - interval '1 day') AS units_last_24h,
 
-        (SELECT count(*) FROM events) AS total_events,
-        (SELECT count(*) FROM events e
+        (SELECT count(*)::int FROM events) AS total_events,
+        (SELECT count(*)::int FROM events e
           WHERE e.visibility = 'public'
             AND EXISTS (SELECT 1 FROM published_units pu WHERE pu.id = e."unitId")) AS public_events,
-        (SELECT count(*) FROM events WHERE "createdAt" >= now() - interval '7 days') AS events_last_7d,
-        (SELECT count(*) FROM events WHERE "createdAt" >= now() - interval '1 day') AS events_last_24h,
+        (SELECT count(*)::int FROM events WHERE "createdAt" >= now() - interval '7 days') AS events_last_7d,
+        (SELECT count(*)::int FROM events WHERE "createdAt" >= now() - interval '1 day') AS events_last_24h,
 
         COALESCE((SELECT avg(event_count)::numeric(10,2) FROM events_per_unit), 0.00) AS avg_events_per_unit,
 
