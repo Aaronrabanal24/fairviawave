@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
+const MetricsCard = dynamic(() => import('./metrics'), { ssr: false })
 
 type Unit = {
   id: string
