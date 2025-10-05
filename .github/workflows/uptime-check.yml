@@ -162,7 +162,7 @@ jobs:
       - id: eval
         env:
           P: ${{ secrets.PRODUCTION_URL }}
-          I: ${{ secrets.E2E_UNIT_ID }}
+          I: ${{ secrets.PUBLIC_UNIT_ID }}
         run: |
           if [ -n "$P" ] && [ -n "$I" ]; then
             echo "ok=true" >> "$GITHUB_OUTPUT"
@@ -177,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       E2E_BASE_URL: ${{ secrets.PRODUCTION_URL }}
-      E2E_UNIT_ID: ${{ secrets.E2E_UNIT_ID }}
+      PUBLIC_UNIT_ID: ${{ secrets.PUBLIC_UNIT_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -189,6 +189,9 @@ jobs:
       - run: npm ci
 
       - run: npx playwright install --with-deps
+
+      - name: Guard for legacy tests
+        run: npm run check:old-tests
 
       - name: Run E2E suite
         run: npm run test:e2e

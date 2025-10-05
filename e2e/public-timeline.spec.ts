@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test'
 
 test('public timeline renders and paginates', async ({ page }) => {
-  const unitId = process.env.PUBLIC_UNIT_ID!
+  const unitId = process.env.PUBLIC_UNIT_ID
+  if (!unitId) throw new Error('PUBLIC_UNIT_ID env var is missing')
+
   await page.goto(`/u/${unitId}`)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   await expect(page.getByRole('list')).toBeVisible()
@@ -11,7 +13,9 @@ test('public timeline renders and paginates', async ({ page }) => {
 })
 
 test('no PII leaks in public timeline', async ({ request }) => {
-  const unitId = process.env.PUBLIC_UNIT_ID!
+  const unitId = process.env.PUBLIC_UNIT_ID
+  if (!unitId) throw new Error('PUBLIC_UNIT_ID env var is missing')
+
   const res = await request.get(`/api/units/${unitId}/timeline/public`)
   expect(res.ok()).toBeTruthy()
 

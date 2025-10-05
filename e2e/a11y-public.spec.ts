@@ -2,7 +2,9 @@ import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 
 test('public timeline has no critical a11y issues', async ({ page }) => {
-  const unitId = process.env.PUBLIC_UNIT_ID!
+  const unitId = process.env.PUBLIC_UNIT_ID
+  if (!unitId) throw new Error('PUBLIC_UNIT_ID env var is missing')
+
   await page.goto(`/u/${unitId}`)
 
   const results = await new AxeBuilder({ page })
