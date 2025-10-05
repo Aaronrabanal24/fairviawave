@@ -18,11 +18,11 @@ export async function GET() {
 
     const rows = await prisma.$queryRaw<any[]>/* sql */`
       with
-        pu as (
+        pu as (  -- published units
           select id
           from public.units
-          where "publishedToken" is not null
-            and ("publishedExpiry" is null or "publishedExpiry" > now())
+          where status = 'published'
+            and ("publishedAt" is not null)   -- defensive if you want both checks
         ),
         epu as (
           select "unitId", count(*)::int as c
@@ -39,12 +39,12 @@ export async function GET() {
       select
         (select count(*)::int from public.units) as total_units,
         (select count(*)::int from pu) as published_units,
-        (select count(*)::int from public.units  where "createdAt" >= now() - interval '7 days') as units_last_7d,
-        (select count(*)::int from public.units  where "createdAt" >= now() - interval '1 day')  as units_last_24h,
+        (select count(*)::int from public.units where "createdAt" >= now() - interval '7 days') as units_last_7d,
+        (select count(*)::int from public.units where "createdAt" >= now() - interval '1 day')  as units_last_24h,
         (select count(*)::int from public.events) as total_events,
         (select count(*)::int from public.events e where exists (select 1 from pu where pu.id = e."unitId")) as public_events,
-        (select count(*)::int from public.events  where "createdAt" >= now() - interval '7 days') as events_last_7d,
-        (select count(*)::int from public.events  where "createdAt" >= now() - interval '1 day')  as events_last_24h,
+        (select count(*)::int from public.events where "createdAt" >= now() - interval '7 days') as events_last_7d,
+        (select count(*)::int from public.events where "createdAt" >= now() - interval '1 day')  as events_last_24h,
         coalesce((select avg(c)::numeric(10,2) from epu), 0.00) as avg_events_per_unit,
         (select unit_id from ma) as most_active_unit_id,
         (select events  from ma) as most_active_unit_events
