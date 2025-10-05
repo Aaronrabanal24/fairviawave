@@ -1,14 +1,18 @@
 # 🚀 Vercel Deployment Guide
 
-## ✅ Current Status
+## 🚨 URGENT: Build Currently Failing
 
-Your app is being deployed to Vercel! The dependencies are installing successfully.
+**Error:** Missing environment variables during build.
 
-## 📋 Post-Deployment Checklist
+**Action Required:** Add environment variables to Vercel **BEFORE** the next build attempt.
 
-### 1. ⚙️ Configure Environment Variables in Vercel
+---
 
-Once deployment completes, go to your Vercel project settings and add these environment variables:
+## ⚡ Quick Fix Steps
+
+### 1. ⚙️ Add Environment Variables to Vercel (DO THIS FIRST!)
+
+Go to your Vercel project settings → Environment Variables and add these:
 
 **Database:**
 ```
@@ -29,11 +33,24 @@ PUBLIC_BASE_URL=https://your-app.vercel.app
 INTERNAL_API_KEY=dev-internal-key
 ```
 
-**IMPORTANT:** Replace `https://your-app.vercel.app` with your actual Vercel deployment URL!
+**IMPORTANT:**
+- Add ALL these variables BEFORE triggering a new deployment
+- You can use a placeholder for `PUBLIC_BASE_URL` initially (like `https://temp.vercel.app`)
+- Update it to the real URL after first successful deployment
 
 ---
 
-### 2. 🔐 Update Supabase Auth Configuration
+### 2. 🔄 Trigger Redeploy
+
+After adding environment variables:
+1. Go to Vercel → Deployments
+2. Click on the failed deployment
+3. Click "Redeploy" button
+4. Or push a new commit to trigger auto-deploy
+
+---
+
+### 3. 🔐 Update Supabase Auth Configuration
 
 After deployment, get your Vercel URL (e.g., `https://fairviawave.vercel.app`) and:
 
