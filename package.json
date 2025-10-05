@@ -9,11 +9,16 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "seed": "ts-node --compiler-options '{"module":"CommonJS"}' prisma/seed.ts",
+    "seed": "prisma db seed",
     "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "5.19.1",
+    "@supabase/ssr": "0.5.1",
+    "@supabase/supabase-js": "2.45.4",
     "date-fns": "4.1.0",
     "jose": "5.9.3",
     "next": "14.2.5",
@@ -32,5 +37,8 @@
     "tailwindcss": "3.4.4",
     "ts-node": "10.9.2",
     "typescript": "5.4.5"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

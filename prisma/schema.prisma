@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Unit {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      String   @default("draft") // draft, published
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  events      Event[]
+
+  @@map("units")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  unitId      String
+  type        String   // e.g., "status_change", "comment", "update"
+  content     String?
+  metadata    Json?
+  visibility  String   @default("internal") // public, internal
+  createdAt   DateTime @default(now())
+
+  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@index([unitId])
+  @@index([visibility])
+  @@map("events")
+}
