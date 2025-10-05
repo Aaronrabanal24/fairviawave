@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { toPublicEvent } from './publicSerializer'
+import { toPublicEvent } from '@/lib/publicSerializer'
 
 describe('public serializer', () => {
   const baseEvent = {

@@ -3,8 +3,9 @@ import path from 'path'
 
 export default defineConfig({
   test: {
+    include: ['src/**/*.{test,spec}.ts?(x)'],
+    exclude: ['e2e/**', 'tests/**', 'node_modules/**', '.next/**', 'dist/**'],
     environment: 'node',
-    globals: true,
   },
   resolve: {
     alias: {
