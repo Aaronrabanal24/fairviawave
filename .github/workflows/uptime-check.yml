@@ -132,7 +132,6 @@ jobs:
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
           PUBLIC_UNIT_ID: ${{ secrets.PUBLIC_UNIT_ID }}
-          PUBLIC_UNIT_TOKEN: ${{ secrets.PUBLIC_UNIT_TOKEN }}
         run: |
           set -euo pipefail
           echo "Hitting $PRODUCTION_URL"
@@ -140,12 +139,12 @@ jobs:
 
           curl -fsS "$PRODUCTION_URL/api/health" >/dev/null
 
-          if [ -n "$PUBLIC_UNIT_ID" ] && [ -n "$PUBLIC_UNIT_TOKEN" ]; then
-            curl -fsS "$PRODUCTION_URL/api/units/$PUBLIC_UNIT_ID/timeline/public?token=$PUBLIC_UNIT_TOKEN" >/dev/null || {
+          if [ -n "$PUBLIC_UNIT_ID" ]; then
+            curl -fsS "$PRODUCTION_URL/api/units/$PUBLIC_UNIT_ID/timeline/public" >/dev/null || {
               echo "Public timeline smoke failed"; exit 1; }
             echo "✅ Public timeline smoke passed"
           else
-            echo "Skipping authenticated public timeline smoke; secrets not configured."
+            echo "Skipping public timeline smoke; PUBLIC_UNIT_ID not configured."
           fi
 
       - name: Notify on Failure
@@ -164,9 +163,8 @@ jobs:
         env:
           P: ${{ secrets.PRODUCTION_URL }}
           I: ${{ secrets.E2E_UNIT_ID }}
-          T: ${{ secrets.E2E_UNIT_TOKEN }}
         run: |
-          if [ -n "$P" ] && [ -n "$I" ] && [ -n "$T" ]; then
+          if [ -n "$P" ] && [ -n "$I" ]; then
             echo "ok=true" >> "$GITHUB_OUTPUT"
           else
             echo "ok=false" >> "$GITHUB_OUTPUT"
@@ -180,7 +178,6 @@ jobs:
     env:
       E2E_BASE_URL: ${{ secrets.PRODUCTION_URL }}
       E2E_UNIT_ID: ${{ secrets.E2E_UNIT_ID }}
-      E2E_UNIT_TOKEN: ${{ secrets.E2E_UNIT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
