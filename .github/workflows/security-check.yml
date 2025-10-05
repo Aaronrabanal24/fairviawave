@@ -1,0 +1,36 @@
+name: Security Headers Check
+
+on:
+  schedule:
+    # Run daily at 9 AM UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-headers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Security Headers
+        run: |
+          echo "Checking security headers..."
+
+          headers=$(curl -sI "${{ secrets.PRODUCTION_URL }}")
+
+          # Check for required security headers
+          if ! echo "$headers" | grep -i "X-Content-Type-Options: nosniff"; then
+            echo "❌ Missing X-Content-Type-Options header"
+            exit 1
+          fi
+
+          if ! echo "$headers" | grep -i "X-Frame-Options: DENY"; then
+            echo "❌ Missing X-Frame-Options header"
+            exit 1
+          fi
+
+          if ! echo "$headers" | grep -i "Strict-Transport-Security"; then
+            echo "❌ Missing HSTS header"
+            exit 1
+          fi
+
+          echo "✅ All security headers present"
+          echo "$headers" | grep -i "X-Content-Type-Options\|X-Frame-Options\|Strict-Transport-Security\|Referrer-Policy"

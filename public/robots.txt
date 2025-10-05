@@ -1,0 +1,8 @@
+# Fairvia Wave 1 - Robots exclusion
+# Disallow indexing until marketing site is ready
+
+User-agent: *
+Disallow: /
+
+# Allow health check
+Allow: /api/health

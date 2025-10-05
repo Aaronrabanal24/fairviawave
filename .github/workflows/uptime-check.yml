@@ -1,0 +1,37 @@
+name: Uptime Check
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Production Health
+        run: |
+          response=$(curl -s -w "%{http_code}" -o /tmp/response.json "${{ secrets.PRODUCTION_URL }}/api/health")
+
+          if [ "$response" != "200" ]; then
+            echo "❌ Health check failed with status: $response"
+            cat /tmp/response.json
+            exit 1
+          fi
+
+          if ! jq -e '.ok == true' /tmp/response.json > /dev/null; then
+            echo "❌ Health check returned ok: false"
+            cat /tmp/response.json
+            exit 1
+          fi
+
+          echo "✅ Health check passed"
+          jq '.' /tmp/response.json
+
+      - name: Notify on Failure
+        if: failure()
+        run: |
+          echo "🚨 Production health check failed!"
+          echo "Check the logs above for details"
+          # Add notification logic here (Slack, Discord, email, etc.)
