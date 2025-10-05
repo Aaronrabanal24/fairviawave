@@ -8,10 +8,16 @@ on:
 
 jobs:
   check-headers:
+    if: ${{ secrets.PRODUCTION_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check Security Headers
         run: |
+          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
+            echo "Skipping security header check (PRODUCTION_URL not set)."
+            exit 0
+          fi
+
           echo "Checking security headers..."
 
           # Follow redirects (-L) and capture final status and headers

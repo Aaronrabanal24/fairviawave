@@ -8,6 +8,7 @@ on:
 
 jobs:
   health-check:
+    if: ${{ secrets.PRODUCTION_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,6 +26,11 @@ jobs:
 
       - name: Check Production Health
         run: |
+          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
+            echo "Skipping health check (PRODUCTION_URL not set)."
+            exit 0
+          fi
+
           response=$(curl -s -w "%{http_code}" -o /tmp/response.json "${{ secrets.PRODUCTION_URL }}/api/health")
 
           if [ "$response" != "200" ]; then
@@ -138,6 +144,7 @@ jobs:
           # Add notification logic here (Slack, Discord, email, etc.)
 
   quality-checks:
+    if: ${{ secrets.PRODUCTION_URL != '' && secrets.E2E_UNIT_ID != '' && secrets.E2E_UNIT_TOKEN != '' }}
     needs: health-check
     runs-on: ubuntu-latest
     steps:
