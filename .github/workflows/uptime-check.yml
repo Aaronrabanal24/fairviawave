@@ -8,8 +8,9 @@ on:
 
 jobs:
   health-check:
-    if: ${{ secrets.PRODUCTION_URL != '' }}
     runs-on: ubuntu-latest
+    env:
+      PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
     steps:
       - uses: actions/checkout@v4
 
@@ -26,12 +27,12 @@ jobs:
 
       - name: Check Production Health
         run: |
-          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
+          if [ -z "$PRODUCTION_URL" ]; then
             echo "Skipping health check (PRODUCTION_URL not set)."
             exit 0
           fi
 
-          response=$(curl -s -w "%{http_code}" -o /tmp/response.json "${{ secrets.PRODUCTION_URL }}/api/health")
+          response=$(curl -s -w "%{http_code}" -o /tmp/response.json "$PRODUCTION_URL/api/health")
 
           if [ "$response" != "200" ]; then
             echo "❌ Health check failed with status: $response"
@@ -50,7 +51,7 @@ jobs:
 
       - name: Check Metrics Summary Thresholds
         env:
-          METRICS_URL: "${{ secrets.PRODUCTION_URL }}/api/metrics/summary"
+          METRICS_URL: "$PRODUCTION_URL/api/metrics/summary"
         run: |
           python - <<'PY'
           import json
@@ -125,7 +126,7 @@ jobs:
 
       - name: Public timeline smoke
         env:
-          PRODUCTION_URL: "${{ secrets.PRODUCTION_URL }}"
+          PRODUCTION_URL: "$PRODUCTION_URL"
           PUBLIC_UNIT_ID: "${{ secrets.PUBLIC_UNIT_ID }}"
           PUBLIC_UNIT_TOKEN: "${{ secrets.PUBLIC_UNIT_TOKEN }}"
         run: |
@@ -143,9 +144,27 @@ jobs:
           echo "Check the logs above for details"
           # Add notification logic here (Slack, Discord, email, etc.)
 
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.eval.outputs.ok }}
+    steps:
+      - id: eval
+        env:
+          P: ${{ secrets.PRODUCTION_URL }}
+          I: ${{ secrets.E2E_UNIT_ID }}
+          T: ${{ secrets.E2E_UNIT_TOKEN }}
+        run: |
+          if [ -n "$P" ] && [ -n "$I" ] && [ -n "$T" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping quality checks; required secrets missing."
+          fi
+
   quality-checks:
-    if: ${{ secrets.PRODUCTION_URL != '' && secrets.E2E_UNIT_ID != '' && secrets.E2E_UNIT_TOKEN != '' }}
-    needs: health-check
+    needs: [health-check, gate]
+    if: ${{ needs.gate.outputs.ok == 'true' }}
     runs-on: ubuntu-latest
     env:
       E2E_BASE_URL: ${{ secrets.PRODUCTION_URL }}
