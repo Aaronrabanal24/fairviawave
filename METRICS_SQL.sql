@@ -175,6 +175,21 @@ CREATE INDEX IF NOT EXISTS idx_events_visibility_type
   ON events(visibility, type, "createdAt" DESC);
 
 -- =============================================================================
+-- Additional Targeted Indexes (Wave 1 Perf)
+-- =============================================================================
+
+-- Units: creation time and published checks
+CREATE INDEX IF NOT EXISTS units_created_idx ON public.units ("createdAt");
+CREATE INDEX IF NOT EXISTS units_published_exp_idx
+  ON public.units ("publishedExpiry")
+  WHERE "publishedToken" IS NOT NULL;
+
+-- Events: by unit and time
+CREATE INDEX IF NOT EXISTS events_unit_created_idx ON public.events ("unitId", "createdAt");
+CREATE INDEX IF NOT EXISTS events_created_idx ON public.events ("createdAt");
+CREATE INDEX IF NOT EXISTS events_ts_idx ON public.events ("ts");
+
+-- =============================================================================
 -- Cleanup Old Data (Optional)
 -- Run periodically to manage database size
 -- =============================================================================

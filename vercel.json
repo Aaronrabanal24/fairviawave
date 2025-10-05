@@ -1,0 +1,10 @@
+{
+  "regions": ["sfo1"],
+  "functions": {
+    "app/**": {
+      "runtime": "nodejs20.x",
+      "regions": ["sfo1"]
+    }
+  }
+}
+

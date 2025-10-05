@@ -3,6 +3,12 @@ import { createSupabaseServer } from '@/lib/supabase/server'
 import { appendEvent } from '@/lib/events'
 import { prisma } from '@/lib/db'
 
+// Keep Prisma on Node, no prerender, and run near the DB
+export const runtime = 'nodejs'
+export const preferredRegion = ['sfo1']
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/units - List all units
 export async function GET() {
   try {

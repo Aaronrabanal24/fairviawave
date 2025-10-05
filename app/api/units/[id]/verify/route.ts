@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { chainHash, eventContentHash } from '@/lib/hash'
 
+// Keep Prisma on Node, no prerender, and run near the DB
+export const runtime = 'nodejs'
+export const preferredRegion = ['sfo1']
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 type Mismatch = {
   id: string
   want: string

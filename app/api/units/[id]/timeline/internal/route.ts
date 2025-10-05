@@ -1,6 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+// Keep Prisma on Node, no prerender, and run near the DB
+export const runtime = 'nodejs'
+export const preferredRegion = ['sfo1']
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/units/:id/timeline/internal - Internal timeline (requires API key)
 export async function GET(
   request: Request,

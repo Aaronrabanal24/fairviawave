@@ -5,37 +5,32 @@
 -- Core Performance Indexes
 -- =============================================================================
 
--- Events table: Unit + Created timestamp (for timeline queries)
-CREATE INDEX IF NOT EXISTS events_unit_created_idx
-  ON events ("unitId", "createdAt" DESC);
-
 -- Units table: Created timestamp (for recent units queries)
 CREATE INDEX IF NOT EXISTS units_created_idx
-  ON units ("createdAt" DESC);
+  ON public.units ("createdAt");
 
--- Events table: Visibility + Type + Created (for filtered queries)
-CREATE INDEX IF NOT EXISTS events_visibility_type_created_idx
-  ON events (visibility, type, "createdAt" DESC);
+-- Units table: Published token expiry for published subset
+CREATE INDEX IF NOT EXISTS units_published_exp_idx
+  ON public.units ("publishedExpiry")
+  WHERE "publishedToken" IS NOT NULL;
 
--- Units table: Status + Published timestamp (for published units)
-CREATE INDEX IF NOT EXISTS units_status_published_idx
-  ON units (status, "publishedAt" DESC);
+-- Events table: Unit + Created timestamp (for timeline queries)
+CREATE INDEX IF NOT EXISTS events_unit_created_idx
+  ON public.events ("unitId", "createdAt");
+
+-- Events table: Created timestamp (for global counts)
+CREATE INDEX IF NOT EXISTS events_created_idx
+  ON public.events ("createdAt");
+
+-- Events table: Event timestamp (for ts-based queries)
+CREATE INDEX IF NOT EXISTS events_ts_idx
+  ON public.events ("ts");
 
 -- =============================================================================
 -- Metrics Query Optimization
 -- =============================================================================
 
--- For metrics summary queries
-CREATE INDEX IF NOT EXISTS units_status_idx
-  ON units (status)
-  WHERE status = 'published';
-
-CREATE INDEX IF NOT EXISTS events_created_idx
-  ON events ("createdAt" DESC);
-
--- For event counting per unit
-CREATE INDEX IF NOT EXISTS events_unit_id_idx
-  ON events ("unitId");
+-- Metrics summary query benefits directly from the above indexes
 
 -- =============================================================================
 -- Verify Indexes Created

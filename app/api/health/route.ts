@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+// Keep Prisma on Node, no prerender, and run near the DB
 export const runtime = 'nodejs'
+export const preferredRegion = ['sfo1']
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET() {
   try {
@@ -14,6 +17,7 @@ export async function GET() {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       service: 'fairvia-wave1',
+      region: process.env.VERCEL_REGION,
     })
   } catch (error) {
     return NextResponse.json(

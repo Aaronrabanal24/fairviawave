@@ -3,6 +3,12 @@ import { prisma } from '@/lib/db'
 import { rateLimit } from '@/lib/rateLimit'
 import { toPublicEvent } from '@/lib/publicSerializer'
 
+// Keep Prisma on Node, no prerender, and run near the DB
+export const runtime = 'nodejs'
+export const preferredRegion = ['sfo1']
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // GET /api/units/:id/timeline/public - Public timeline (PII-safe)
 export async function GET(
   request: Request,

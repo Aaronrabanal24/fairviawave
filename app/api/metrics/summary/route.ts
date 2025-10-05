@@ -1,59 +1,55 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
+// Keep Prisma on Node, no prerender, and run near the DB
 export const runtime = 'nodejs'
+export const preferredRegion = ['sfo1']
 export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET() {
   try {
-    // One-shot summary query optimized for performance
-    const rows = await prisma.$queryRaw<any[]>`
-      WITH
-        published_units AS (
-          SELECT id
-          FROM units
-          WHERE status = 'published'
-            AND ("publishedAt" IS NOT NULL)
+    const rows = await prisma.$queryRaw<any[]>/* sql */`
+      with
+        pu as (
+          select id
+          from public.units
+          where "publishedToken" is not null
+            and ("publishedExpiry" is null or "publishedExpiry" > now())
         ),
-        events_per_unit AS (
-          SELECT "unitId", count(*)::int AS event_count
-          FROM events
-          GROUP BY "unitId"
+        epu as (
+          select "unitId", count(*)::int as c
+          from public.events
+          group by "unitId"
         ),
-        most_active AS (
-          SELECT e."unitId" AS unit_id, count(e.id)::int AS events
-          FROM events e
-          GROUP BY e."unitId"
-          ORDER BY events DESC
-          LIMIT 1
+        ma as (
+          select e."unitId" as unit_id, count(*)::int as events
+          from public.events e
+          group by e."unitId"
+          order by events desc
+          limit 1
         )
-      SELECT
-        (SELECT count(*)::int FROM units) AS total_units,
-        (SELECT count(*)::int FROM published_units) AS published_units,
-        (SELECT count(*)::int FROM units WHERE "createdAt" >= now() - interval '7 days') AS units_last_7d,
-        (SELECT count(*)::int FROM units WHERE "createdAt" >= now() - interval '1 day') AS units_last_24h,
-
-        (SELECT count(*)::int FROM events) AS total_events,
-        (SELECT count(*)::int FROM events e
-          WHERE e.visibility = 'public'
-            AND EXISTS (SELECT 1 FROM published_units pu WHERE pu.id = e."unitId")) AS public_events,
-        (SELECT count(*)::int FROM events WHERE "createdAt" >= now() - interval '7 days') AS events_last_7d,
-        (SELECT count(*)::int FROM events WHERE "createdAt" >= now() - interval '1 day') AS events_last_24h,
-
-        COALESCE((SELECT avg(event_count)::numeric(10,2) FROM events_per_unit), 0.00) AS avg_events_per_unit,
-
-        (SELECT unit_id FROM most_active) AS most_active_unit_id,
-        (SELECT events FROM most_active) AS most_active_unit_events
+      select
+        (select count(*)::int from public.units) as total_units,
+        (select count(*)::int from pu) as published_units,
+        (select count(*)::int from public.units where "createdAt" >= now() - interval '7 days') as units_last_7d,
+        (select count(*)::int from public.units where "createdAt" >= now() - interval '1 day') as units_last_24h,
+        (select count(*)::int from public.events) as total_events,
+        (select count(*)::int from public.events e where exists (select 1 from pu where pu.id = e."unitId")) as public_events,
+        (select count(*)::int from public.events where "createdAt" >= now() - interval '7 days') as events_last_7d,
+        (select count(*)::int from public.events where "createdAt" >= now() - interval '1 day') as events_last_24h,
+        coalesce((select avg(c)::numeric(10,2) from epu), 0.00) as avg_events_per_unit,
+        (select unit_id from ma) as most_active_unit_id,
+        (select events from ma) as most_active_unit_events
     `
 
     const s = rows[0]
 
     return NextResponse.json({
       ...s,
-      published_rate: Number(s.total_units) > 0
+      published_rate: Number(s.total_units)
         ? Number(s.published_units) / Number(s.total_units)
         : 0,
-      timestamp: new Date().toISOString(),
     })
   } catch (error) {
     console.error('Error fetching metrics:', error)
