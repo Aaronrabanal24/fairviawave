@@ -14,23 +14,34 @@ jobs:
         run: |
           echo "Checking security headers..."
 
-          headers=$(curl -sI "${{ secrets.PRODUCTION_URL }}")
+          # Follow redirects (-L) and capture final status and headers
+          status=$(curl -sS -L -D /tmp/headers.txt -o /dev/null -w "%{http_code}" "${{ secrets.PRODUCTION_URL }}")
 
-          # Check for required security headers
-          if ! echo "$headers" | grep -i "X-Content-Type-Options: nosniff"; then
-            echo "❌ Missing X-Content-Type-Options header"
+          echo "HTTP status: $status"
+          echo "---- Response headers (final) ----"
+          cat /tmp/headers.txt
+          echo "----------------------------------"
+
+          if [ "$status" -lt 200 ] || [ "$status" -ge 400 ]; then
+            echo "❌ Non-success HTTP status from PRODUCTION_URL"
             exit 1
           fi
 
-          if ! echo "$headers" | grep -i "X-Frame-Options: DENY"; then
-            echo "❌ Missing X-Frame-Options header"
+          # Check for required security headers (case-insensitive, anchored)
+          if ! grep -qi '^x-content-type-options: *nosniff' /tmp/headers.txt; then
+            echo "❌ Missing X-Content-Type-Options: nosniff"
             exit 1
           fi
 
-          if ! echo "$headers" | grep -i "Strict-Transport-Security"; then
-            echo "❌ Missing HSTS header"
+          if ! grep -qi '^x-frame-options: *deny' /tmp/headers.txt; then
+            echo "❌ Missing X-Frame-Options: DENY"
+            exit 1
+          fi
+
+          if ! grep -qi '^strict-transport-security:' /tmp/headers.txt; then
+            echo "❌ Missing Strict-Transport-Security"
             exit 1
           fi
 
           echo "✅ All security headers present"
-          echo "$headers" | grep -i "X-Content-Type-Options\|X-Frame-Options\|Strict-Transport-Security\|Referrer-Policy"
+          grep -iE '^(x-content-type-options|x-frame-options|strict-transport-security|referrer-policy):' /tmp/headers.txt || true
