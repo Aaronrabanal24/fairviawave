@@ -6,3 +6,8 @@ dist
 .vercel
 pnpm-lock.yaml
 yarn.lock
+
+# Test artifacts
+playwright-report/
+test-results/
+*.spec.js.map
