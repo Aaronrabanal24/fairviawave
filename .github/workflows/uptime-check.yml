@@ -154,10 +154,6 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      - name: Install test tooling (no-save)
-        run: |
-          npm install --no-save @playwright/test @axe-core/playwright @lhci/cli
-
       - name: E2E (Playwright)
         env:
           E2E_BASE_URL: "${{ secrets.PRODUCTION_URL }}"
