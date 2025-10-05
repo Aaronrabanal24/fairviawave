@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { createSupabaseClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -26,20 +26,26 @@ export default function DashboardPage() {
   const [selectedUnitId, setSelectedUnitId] = useState<string>('')
   const [publicUrl, setPublicUrl] = useState<string>('')
   const [qrDataUrl, setQrDataUrl] = useState<string>('')
-  const supabase = createSupabaseClient()
+  const supabase = useMemo(() => createSupabaseClient(), [])
   const router = useRouter()
 
   useEffect(() => {
+    let mounted = true
     async function loadUser() {
       const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      if (user) {
-        fetchUnits()
+      if (mounted) {
+        setUser(user)
+        if (user) {
+          fetchUnits()
+        }
+        setLoading(false)
       }
-      setLoading(false)
     }
     loadUser()
-  }, [supabase.auth])
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const fetchUnits = async () => {
     const res = await fetch('/api/units')

@@ -22,6 +22,9 @@ model Unit {
 
   events      Event[]
 
+  @@index([status])
+  @@index([publishedAt])
+  @@index([createdAt])
   @@map("units")
 }
 
@@ -43,5 +46,8 @@ model Event {
   @@index([unitId])
   @@index([unitId, ts])
   @@index([visibility])
+  @@index([createdAt])
+  @@index([ts])
+  @@index([unitId, visibility])
   @@map("events")
 }
