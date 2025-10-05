@@ -34,7 +34,8 @@ export async function GET() {
 
         (SELECT count(*) FROM events) AS total_events,
         (SELECT count(*) FROM events e
-          WHERE EXISTS (SELECT 1 FROM published_units pu WHERE pu.id = e."unitId")) AS public_events,
+          WHERE e.visibility = 'public'
+            AND EXISTS (SELECT 1 FROM published_units pu WHERE pu.id = e."unitId")) AS public_events,
         (SELECT count(*) FROM events WHERE "createdAt" >= now() - interval '7 days') AS events_last_7d,
         (SELECT count(*) FROM events WHERE "createdAt" >= now() - interval '1 day') AS events_last_24h,
 

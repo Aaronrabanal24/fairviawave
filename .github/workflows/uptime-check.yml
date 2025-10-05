@@ -29,6 +29,81 @@ jobs:
           echo "✅ Health check passed"
           jq '.' /tmp/response.json
 
+      - name: Check Metrics Summary Thresholds
+        env:
+          METRICS_URL: "${{ secrets.PRODUCTION_URL }}/api/metrics/summary"
+        run: |
+          python <<'PY'
+import json
+import os
+import sys
+import time
+import urllib.error
+import urllib.request
+
+url = os.environ["METRICS_URL"]
+
+
+def timed_fetch() -> tuple[int, bytes, float]:
+    start = time.perf_counter()
+    try:
+        with urllib.request.urlopen(url, timeout=10) as resp:
+            body = resp.read()
+            status = resp.getcode()
+    except urllib.error.URLError as exc:  # network issues / timeouts
+        sys.exit(f"Failed to reach metrics endpoint: {exc}")
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    return status, body, elapsed_ms
+
+
+status, body, first_latency = timed_fetch()
+print(f"Metrics status: {status}")
+
+if status != 200:
+    print(body.decode("utf-8", errors="ignore"))
+    sys.exit(f"Metrics endpoint returned {status}")
+
+try:
+    data = json.loads(body.decode("utf-8"))
+except json.JSONDecodeError as exc:
+    sys.exit(f"Failed to parse metrics JSON: {exc}")
+
+total_units = data.get("total_units") or 0
+published_units = data.get("published_units") or 0
+events_last_24h = data.get("events_last_24h") or 0
+
+if total_units > 0:
+    published_rate = published_units / total_units
+    print(f"Published rate: {published_rate:.2%}")
+    if published_rate < 0.30:
+        sys.exit(f"Published rate below threshold: {published_rate:.2%}")
+else:
+    print("No units present; skipping publish rate threshold check.")
+
+if published_units > 0 and events_last_24h == 0:
+    sys.exit("Published units exist but no events recorded in the last 24h.")
+
+latency_samples = [first_latency]
+
+for _ in range(9):
+    status, _, elapsed = timed_fetch()
+    if status != 200:
+        sys.exit(f"Metrics endpoint returned {status} during latency sampling")
+    latency_samples.append(elapsed)
+
+latency_samples.sort()
+p95_index = max(int(round(len(latency_samples) * 0.95)) - 1, 0)
+p95_latency = latency_samples[p95_index]
+
+print("Latency samples (ms):", ", ".join(f"{sample:.1f}" for sample in latency_samples))
+print(f"P95 latency: {p95_latency:.2f} ms")
+
+if p95_latency > 500:
+    sys.exit(f"P95 latency {p95_latency:.2f} ms exceeds 500 ms threshold")
+
+print("✅ Metrics thresholds passed")
+PY
+
       - name: Notify on Failure
         if: failure()
         run: |
