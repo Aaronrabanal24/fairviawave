@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { signalDelegate } from '@/lib/delegates/signal';
+import { scoreBucket } from '@/lib/score';
 
-// Eight Wave 2 conversion stages with counts
+// Force dynamic for production build
+export const dynamic = 'force-dynamic';
+
 const CONVERSION_STAGES = [
   'view_trust',
   'precheck_start', 

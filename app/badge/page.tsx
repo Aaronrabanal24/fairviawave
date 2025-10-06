@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic for interactive content
+export const dynamic = 'force-dynamic';
+
 export default function BadgePage() {
   const handleTrustView = async () => {
     try {
@@ -38,7 +41,7 @@ export default function BadgePage() {
             Verified Property
           </h1>
           <p className="text-gray-600">
-            This property is verified through Fairvia's trust and compliance network
+            This property is verified through Fairvia&apos;s trust and compliance network
           </p>
         </div>
 

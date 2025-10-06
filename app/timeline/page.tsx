@@ -1,3 +1,8 @@
+'use client';
+
+// Force dynamic for interactive content
+export const dynamic = 'force-dynamic';
+
 export default function TimelinePage() {
   const events = [
     { id: 1, type: 'Unit Published', time: '2024-10-01 09:00', icon: '🏠' },

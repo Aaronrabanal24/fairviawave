@@ -6,6 +6,9 @@ import { DailyScoreSparkline } from '@/components/DailyScoreSparkline';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
+// Force dynamic for interactive content
+export const dynamic = 'force-dynamic';
+
 export default function Wave2Demo() {
   const [health, setHealth] = useState<any>(null);
   const [loading, setLoading] = useState(true);
