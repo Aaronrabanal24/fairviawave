@@ -46,7 +46,7 @@ export function FunnelCard({ counts, level, lastUpdatedISO }: FunnelCardProps) {
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold text-lg">Conversion Funnel</h3>
-        <Badge variant="outline" className={levelColors[level]}>
+        <Badge className={levelColors[level]}>
           {level} activity
         </Badge>
       </div>
