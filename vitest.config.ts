@@ -5,7 +5,15 @@ export default defineConfig({
   test: {
     include: ['src/**/*.{test,spec}.ts?(x)'],
     exclude: ['e2e/**', 'tests/**', 'node_modules/**', '.next/**', 'dist/**'],
-    environment: 'node',
+    environment: 'jsdom',
+    setupFiles: ['./test/setup.ts'],
+    globals: true,
+    css: false,
+    pool: 'threads',
+    coverage: {
+      reporter: ['text', 'lcov'],
+      exclude: ['**/*.d.ts', '**/test/**', '**/e2e/**'],
+    },
   },
   resolve: {
     alias: {

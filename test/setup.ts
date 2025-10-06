@@ -74,13 +74,14 @@ if (!URL.revokeObjectURL) {
 
 // next/image requires this in tests
 vi.mock("next/image", () => ({
-  default: (props) => {
+  default: (props: any) => {
+    const { src, alt, ...rest } = props;
     return {
       type: 'img',
       props: {
-        ...props,
-        src: typeof props.src === 'string' ? props.src : '',
-        alt: props.alt || ''
+        src: typeof src === 'string' ? src : '',
+        alt: alt || '',
+        ...rest
       }
     };
   }
