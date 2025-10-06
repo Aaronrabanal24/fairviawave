@@ -3,5 +3,6 @@
     "inlineChat.enableV2": true,
     "inlineChat.finishOnType": true,
     "claude-code.useTerminal": true,
-    "terminal.integrated.shellIntegration.enabled": false
+    "terminal.integrated.shellIntegration.enabled": false,
+    "terminal.integrated.autoReplies": {}
 }
