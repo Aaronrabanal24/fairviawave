@@ -35,6 +35,9 @@ const Wave2Enhanced = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newUnit, setNewUnit] = useState({ name: '', description: '' });
+  const [creating, setCreating] = useState(false);
   const supabase = useMemo(() => createSupabaseClient(), []);
 
   useEffect(() => {
@@ -57,6 +60,32 @@ const Wave2Enhanced = () => {
   const showNotification = (message: string) => {
     setToastMessage(message);
     setShowToast(true);
+  };
+
+  const handleCreateUnit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await fetch('/api/units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUnit),
+      });
+      if (res.ok) {
+        const unit = await res.json();
+        setUnits([unit, ...units]);
+        setNewUnit({ name: '', description: '' });
+        setShowCreateModal(false);
+        showNotification('Unit created successfully!');
+        // Recalculate stats
+        const activeUnits = [unit, ...units].filter((u: Unit) => u.status === 'published').length;
+        setStats(prev => ({ ...prev, activeUnits, recentActivity: prev.recentActivity + 1 }));
+      }
+    } catch (error) {
+      showNotification('Failed to create unit');
+    } finally {
+      setCreating(false);
+    }
   };
 
   const fetchUnits = async () => {
@@ -445,7 +474,7 @@ const Wave2Enhanced = () => {
                 
                 <div className="space-y-3">
                   <button 
-                    onClick={() => window.location.href = '/dashboard'}
+                    onClick={() => setShowCreateModal(true)}
                     className="w-full flex items-center px-3 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors border border-transparent hover:border-blue-200"
                   >
                     <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -540,6 +569,63 @@ const Wave2Enhanced = () => {
                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
               </svg>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Create Unit Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Create New Unit</h2>
+            <form onSubmit={handleCreateUnit} className="space-y-4">
+              <div>
+                <label htmlFor="unitName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Unit Name
+                </label>
+                <input
+                  id="unitName"
+                  type="text"
+                  placeholder="e.g., 123 Oak Street, Unit 2A"
+                  value={newUnit.name}
+                  onChange={(e) => setNewUnit({ ...newUnit, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="unitDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  id="unitDescription"
+                  placeholder="Brief description of the unit..."
+                  value={newUnit.description}
+                  onChange={(e) => setNewUnit({ ...newUnit, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewUnit({ name: '', description: '' });
+                  }}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {creating ? 'Creating...' : 'Create Unit'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
