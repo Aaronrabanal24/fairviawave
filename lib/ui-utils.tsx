@@ -18,7 +18,8 @@ export function useBool(initial = false) {
  * Memoization with deep equality (use sparingly)
  */
 export function useMemoEq<T>(val: T): T {
-  return useMemo(() => val, [JSON.stringify(val)]);
+  const serialized = JSON.stringify(val);
+  return useMemo(() => val, [serialized]);
 }
 
 /**
@@ -57,7 +58,7 @@ export function ErrorMessage({ message, retry }: { message: string; retry?: () =
   return (
     <div className="text-center p-4">
       <div className="text-red-600 mb-2">❌ {message}</div>
-      {retry && (
+      {!!retry && (
         <button 
           onClick={retry}
           className="text-sm text-blue-600 hover:text-blue-800 underline"
@@ -86,7 +87,7 @@ export function EmptyState({
       <div className="text-gray-400 text-4xl mb-4">📭</div>
       <h3 className="text-lg font-medium text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-600 mb-4">{description}</p>
-      {action}
+      {!!action && <div>{action}</div>}
     </div>
   );
 }

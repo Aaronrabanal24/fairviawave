@@ -1,3 +1,4 @@
+import 'server-only';
 import type { Prisma, Event } from '@prisma/client'
 import { prisma } from '@/lib/db'
 import { chainHash, eventContentHash, type Json } from '@/lib/hash'

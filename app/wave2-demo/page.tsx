@@ -65,7 +65,7 @@ export default function Wave2Demo() {
         </div>
 
         {/* Health Status */}
-        {health && (
+        {!!health && (
           <Card className="border-l-4 border-l-blue-500">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -104,7 +104,7 @@ export default function Wave2Demo() {
                   </div>
                 </div>
               </div>
-              {health.summary?.message && (
+              {!!health.summary?.message && (
                 <div className="mt-3 text-sm text-gray-600 font-medium">
                   {health.summary.message}
                 </div>

@@ -157,7 +157,7 @@ export function FunnelCard({
           <span className="flex items-center gap-1">
             👥 {total} total signals
           </span>
-          {lastUpdated && (
+          {!!lastUpdated && (
             <span className="flex items-center gap-1">
               🕒 {new Date(lastUpdated).toLocaleTimeString()}
             </span>

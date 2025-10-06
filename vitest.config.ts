@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './'),
+      'server-only': path.resolve(__dirname, './vitest-mocks/server-only.js'),
     },
   },
 })

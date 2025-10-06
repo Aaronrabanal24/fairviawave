@@ -1,3 +1,4 @@
+import 'server-only';
 import { prisma } from '@/lib/db';
 import { warnAnyCastStillPresent } from '@/lib/devWarnings';
 

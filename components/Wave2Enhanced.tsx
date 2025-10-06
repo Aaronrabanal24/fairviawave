@@ -252,7 +252,7 @@ const Wave2Enhanced = () => {
           ))}
         </svg>
         
-        {tooltip && (
+        {!!tooltip && (
           <div 
             className="fixed z-50 bg-gray-900 text-white text-xs px-2 py-1 rounded shadow-lg pointer-events-none"
             style={{ 
@@ -546,7 +546,7 @@ const Wave2Enhanced = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
                             <div className="text-sm font-medium text-gray-900">{unit.name}</div>
-                            {unit.description && (
+                            {!!unit.description && (
                               <div className="text-sm text-gray-500">{unit.description}</div>
                             )}
                           </div>
@@ -602,7 +602,7 @@ const Wave2Enhanced = () => {
       </div>
 
       {/* Create Unit Modal */}
-      {showCreateModal && (
+      {!!showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Unit</h3>
@@ -664,7 +664,7 @@ const Wave2Enhanced = () => {
       )}
 
       {/* Toast Notification */}
-      {showToast && (
+      {!!showToast && (
         <div className="fixed bottom-4 right-4 bg-gray-900 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-slide-in">
           <div className="flex items-center">
             <svg className="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
