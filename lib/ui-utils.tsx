@@ -1,5 +1,39 @@
-// Optimized component utilities to reduce bundle size
-import { ReactNode } from 'react';
+'use client';
+// Optimized client-only utilities to reduce bundle size
+import { ReactNode, useMemo, useState, useTransition } from 'react';
+
+/**
+ * Boolean state hook with convenience methods
+ */
+export function useBool(initial = false) {
+  const [value, setValue] = useState(initial);
+  const on = () => setValue(true);
+  const off = () => setValue(false);
+  const toggle = () => setValue(x => !x);
+  
+  return { value, on, off, toggle };
+}
+
+/**
+ * Memoization with deep equality (use sparingly)
+ */
+export function useMemoEq<T>(val: T): T {
+  return useMemo(() => val, [JSON.stringify(val)]);
+}
+
+/**
+ * Async action hook with pending state
+ */
+export function useAsyncAction<A extends any[], R>(fn: (...args: A) => Promise<R>) {
+  const [pending, startTransition] = useTransition();
+  
+  return {
+    pending,
+    run: (...args: A) => startTransition(() => {
+      fn(...args).catch(console.error); // Handle promise in transition
+    }),
+  };
+}
 
 /**
  * Common loading states to avoid duplicating JSX

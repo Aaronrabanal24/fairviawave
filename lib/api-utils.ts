@@ -2,6 +2,66 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
+ * Build URL with query parameters
+ */
+export function buildURL(path: string, params?: Record<string, string | number | undefined>): string {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+  const url = new URL(path, baseUrl);
+  
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  
+  return url.toString();
+}
+
+/**
+ * Safe JSON parsing with error handling
+ */
+export async function safeJson<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+/**
+ * Type-safe API result pattern
+ */
+export type ApiResult<T> = 
+  | { ok: true; data: T } 
+  | { ok: false; error: string };
+
+/**
+ * Safe fetch with error handling
+ */
+export async function safeFetch<T>(
+  input: RequestInfo, 
+  init?: RequestInit
+): Promise<ApiResult<T>> {
+  try {
+    const response = await fetch(input, init);
+    
+    if (!response.ok) {
+      return { 
+        ok: false, 
+        error: `HTTP ${response.status}: ${response.statusText}` 
+      };
+    }
+    
+    const data = await response.json() as T;
+    return { ok: true, data };
+  } catch (error: any) {
+    return { 
+      ok: false, 
+      error: error?.message ?? 'Network error' 
+    };
+  }
+}
+
+/**
  * Common error responses for API routes
  */
 export const API_ERRORS = {
