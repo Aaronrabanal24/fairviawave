@@ -1,15 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 
-declare global {
-  // allow global `var` declarations
-  // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+// Add PrismaClient to the NodeJS global type
+interface CustomNodeJsGlobal {
+  prisma: PrismaClient;
 }
 
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    log: ['query'],
-  });
+// Prevent multiple instances of Prisma Client in development
+declare const global: CustomNodeJsGlobal;
 
-if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
+const prisma = global.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV === 'development') {
+  global.prisma = prisma;
+}
+
+export { prisma };

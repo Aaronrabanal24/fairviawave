@@ -34,7 +34,15 @@ export async function POST(req: Request) {
     // Generate required fields for Signal model
     const unitId = body?.unitId || 'test-unit';
     const sessionId = body?.sessionId || `sess_${Date.now()}`;
-    const ipHash = 'dev-hash';
+    // In production, hash the real IP. In dev, use a placeholder.
+    const ip =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      '127.0.0.1';
+    const ipHash =
+      process.env.NODE_ENV === 'production'
+        ? require('crypto').createHash('sha256').update(ip).digest('hex')
+        : 'dev-hash';
 
     const created = await signalDelegate.create({
       data: { 

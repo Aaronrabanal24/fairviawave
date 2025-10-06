@@ -5,18 +5,16 @@ export async function GET() {
   if (process.env.NODE_ENV === 'production') {
     return NextResponse.json({ error: 'Not available' }, { status: 404 });
   }
+  
   try {
     const delegates = Object.keys(prisma)
-      .filter(k => {
-        const delegate = (prisma as unknown as Record<string, any>)[k];
-        return typeof delegate?.findFirst === 'function';
-      });
+      .filter(k => typeof (prisma as any)[k]?.findFirst === 'function');
+    
     return NextResponse.json({ delegates });
   } catch (error) {
     return NextResponse.json(
-      { error: 'Failed to check prisma models' },
+      { error: 'Failed to check prisma models' }, 
       { status: 500 }
     );
   }
 }
-

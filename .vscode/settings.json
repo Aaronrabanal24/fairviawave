@@ -4,5 +4,7 @@
     "inlineChat.finishOnType": true,
     "claude-code.useTerminal": true,
     "terminal.integrated.shellIntegration.enabled": false,
-    "terminal.integrated.autoReplies": {}
+    "terminal.integrated.autoReplies": {},
+    "chat.agent.thinkingStyle": "expanded",
+    "chat.agentSessionsViewLocation": "view"
 }

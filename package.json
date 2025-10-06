@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "clean:prisma": "rm -rf .prisma node_modules/.prisma prisma/generated",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

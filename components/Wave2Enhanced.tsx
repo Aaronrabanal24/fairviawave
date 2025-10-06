@@ -392,10 +392,10 @@ const Wave2Enhanced = () => {
         <button
           key={range}
           onClick={() => setSelectedTimeRange(range)}
-          className={`px-3 py-1 text-sm font-medium rounded transition-all ${
+          className={`px-3 py-2 text-sm font-medium rounded transition-all min-h-[44px] ${
             selectedTimeRange === range
               ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
           }`}
           role="tab"
           aria-selected={selectedTimeRange === range}
@@ -409,71 +409,77 @@ const Wave2Enhanced = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center" role="status" aria-live="polite">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" aria-hidden="true"></div>
+          <p className="mt-4 text-gray-600 text-base sm:text-lg">Loading dashboard...</p>
+          <span className="sr-only">Please wait while the dashboard loads</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Owner Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-600">
+      <div className="max-w-7xl mx-auto mb-6 sm:mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Owner Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-600" aria-live="polite">
               Last updated: {new Date(metrics.lastUpdated).toLocaleTimeString()}
             </p>
           </div>
-          <div className="mt-4 sm:mt-0 flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <TimeRangeSelector />
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
-                refreshing ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
-              aria-label="Refresh dashboard data"
-            >
-              {refreshing ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Refreshing...
-                </span>
-              ) : (
-                'Refresh'
-              )}
-            </button>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-              aria-label="Create new unit"
-            >
-              + Create Unit
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className={`flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors min-h-[44px] ${
+                  refreshing ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                aria-label="Refresh dashboard data"
+                aria-live="polite"
+                aria-busy={refreshing}
+              >
+                {refreshing ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Refreshing...</span>
+                  </span>
+                ) : (
+                  'Refresh'
+                )}
+              </button>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 transition-colors min-h-[44px]"
+                aria-label="Create new unit"
+              >
+                <span className="hidden sm:inline">+ Create Unit</span>
+                <span className="sm:hidden">+ Unit</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <section className="max-w-7xl mx-auto mb-6 sm:mb-8" aria-label="Dashboard metrics">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Active Units Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-600">Active Units</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics.activeUnits}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{metrics.activeUnits}</p>
               </div>
-              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H5m14 0v-2a2 2 0 00-2-2H7a2 2 0 00-2 2v2" />
                 </svg>
               </div>
@@ -481,17 +487,17 @@ const Wave2Enhanced = () => {
             <div className="mt-4">
               <Sparkline data={metrics.sparklineData.data.map(d => ({ ...d, score: d.score * 0.8 }))} className="text-blue-500" />
             </div>
-          </div>
+          </article>
 
           {/* Total Views Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-600">Total Views</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics.totalViews}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{metrics.totalViews}</p>
               </div>
-              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -506,10 +512,10 @@ const Wave2Enhanced = () => {
                 {metrics.sparklineData.change > 0 ? '+' : ''}{metrics.sparklineData.change}
               </span>
             </div>
-          </div>
+          </article>
 
           {/* Average Score Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Daily Trust Score</p>
@@ -527,17 +533,17 @@ const Wave2Enhanced = () => {
                 {selectedTimeRange} average: {metrics.sparklineData.avg}
               </p>
             </div>
-          </div>
+          </article>
 
           {/* Conversion Rate Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                <p className="text-2xl font-bold text-gray-900">{metrics.conversionRate}%</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{metrics.conversionRate}%</p>
               </div>
-              <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
-                <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
@@ -553,14 +559,14 @@ const Wave2Enhanced = () => {
                 {metrics.conversionRate > 40 ? 'High' : metrics.conversionRate > 25 ? 'Medium' : 'Low'} performance
               </div>
             </div>
-          </div>
+          </article>
         </div>
-      </div>
+      </section>
 
       {/* Main Content Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Left Column - Analytics */}
-        <div className="lg:col-span-2 space-y-6">
+        <section className="lg:col-span-2 space-y-6" aria-label="Analytics and units">
           {/* Conversion Funnel */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6">
@@ -623,10 +629,10 @@ const Wave2Enhanced = () => {
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Right Column - Live Stats */}
-        <div className="space-y-6">
+        <aside className="space-y-6" aria-label="Live statistics">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Activity</h3>
             <div className="space-y-4">
@@ -647,7 +653,7 @@ const Wave2Enhanced = () => {
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
 
       {/* Create Unit Modal */}
