@@ -18,14 +18,14 @@ if (!(global as any).crypto?.getRandomValues) {
 
 // fetch
 if (!(global as any).fetch) {
-  const { fetch, Headers, Request, Response, FormData, File, Blob } = await import("undici");
+  const { fetch, Headers, Request, Response, FormData } = await import("undici");
   (global as any).fetch = fetch;
   (global as any).Headers = Headers;
   (global as any).Request = Request;
   (global as any).Response = Response;
   (global as any).FormData = FormData;
-  (global as any).File = File;
-  (global as any).Blob = Blob;
+  // File is not available in undici, so do not assign it
+  // Blob is not available in undici, so do not assign it
 }
 
 // matchMedia
@@ -74,7 +74,7 @@ if (!URL.revokeObjectURL) {
 
 // next/image requires this in tests
 vi.mock("next/image", () => ({
-  default: (props) => {
+  default: (props: any) => {
     return {
       type: 'img',
       props: {

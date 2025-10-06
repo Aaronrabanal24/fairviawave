@@ -12,67 +12,36 @@ datasource db {
 }
 
 model Unit {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  status      String    @default("draft") // draft, published
+  id          String   @id @default(uuid())
+  slug        String   @unique
+  status      String   @default("draft")
   publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  events  Event[]
-  signals Signal[]
-
-  @@index([status])
-  @@index([publishedAt])
-  @@index([createdAt])
-  @@map("units")
+  createdAt   DateTime @default(now())
+  events      Event[]
+  
+  @@index([status, publishedAt, createdAt])
 }
 
 model Event {
-  id          String   @id @default(cuid())
-  unitId      String
-  type        String // e.g., "status_change", "comment", "update"
-  content     String?
-  metadata    Json?
-  visibility  String   @default("internal") // public, internal
-  actor       String?
-  ts          DateTime @default(now())
-  contentHash String
-  chainHash   String
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  unitId     String
+  unit       Unit     @relation(fields: [unitId], references: [id])
+  type       String
+  payload    Json
+  visibility String   @default("internal")
+  createdAt  DateTime @default(now())
+  ts         DateTime?
 
-  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-
-  @@index([unitId])
-  @@index([unitId, ts])
-  @@index([visibility])
   @@index([createdAt])
   @@index([ts])
   @@index([unitId, visibility])
-  @@map("events")
 }
 
 model Signal {
-  id        String   @id @default(cuid())
-  unitId    String
-  type      String // ConversionSignalType: view_trust, precheck_start, etc.
-  sessionId String
-  userId    String?
-  ipHash    String
-  userAgent String?
-  score     Int      @default(0)
-  metadata  Json?
+  id        String   @id @default(uuid())
+  type      String
+  meta      Json
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-
-  @@index([unitId])
-  @@index([unitId, createdAt])
-  @@index([sessionId])
-  @@index([type])
-  @@index([createdAt])
-  @@index([ipHash])
-  @@map("signals")
+  
+  @@index([type, createdAt])
 }
