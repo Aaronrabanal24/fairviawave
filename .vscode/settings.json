@@ -1,5 +1,6 @@
 {
     "chatgpt.openOnStartup": true,
     "inlineChat.enableV2": true,
-    "inlineChat.finishOnType": true
+    "inlineChat.finishOnType": true,
+    "claude-code.useTerminal": true
 }
