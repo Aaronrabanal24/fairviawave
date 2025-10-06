@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
 // Mock Prisma Client with all necessary methods
-const mockPrismaClient = {
+const mockPrismaClient: any = {
   unit: {
     findUnique: vi.fn(),
     findFirst: vi.fn(),

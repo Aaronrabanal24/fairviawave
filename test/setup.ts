@@ -18,14 +18,13 @@ if (!(global as any).crypto?.getRandomValues) {
 
 // fetch
 if (!(global as any).fetch) {
-  const { fetch, Headers, Request, Response, FormData, File, Blob } = await import("undici");
-  (global as any).fetch = fetch;
-  (global as any).Headers = Headers;
-  (global as any).Request = Request;
-  (global as any).Response = Response;
-  (global as any).FormData = FormData;
-  (global as any).File = File;
-  (global as any).Blob = Blob;
+  const undici = await import("undici");
+  (global as any).fetch = undici.fetch;
+  (global as any).Headers = undici.Headers;
+  (global as any).Request = undici.Request;
+  (global as any).Response = undici.Response;
+  (global as any).FormData = undici.FormData;
+  (global as any).File = undici.File;
 }
 
 // matchMedia
