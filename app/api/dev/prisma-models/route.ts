@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   if (process.env.NODE_ENV === 'production') {
@@ -8,7 +8,7 @@ export async function GET() {
   
   try {
     const delegates = Object.keys(prisma)
-      .filter(k => prisma[k]?.findFirst instanceof Function);
+      .filter(k => typeof (prisma as any)[k]?.findFirst === 'function');
     
     return NextResponse.json({ delegates });
   } catch (error) {

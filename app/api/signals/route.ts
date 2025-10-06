@@ -1,66 +1,62 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { log } from '@/lib/log';
-import { rateLimit } from '@/lib/rateLimit';
-
-const isProd = process.env.NODE_ENV === 'production';
+import { signalDelegate } from '@/lib/delegates/signal';
+import { sanitizeMeta } from '@/lib/sanitize';
+import { scoreBucket } from '@/lib/score';
+import { prodGuard, successResponse, errorResponse } from '@/lib/api-utils';
 
 export async function GET() {
   try {
-    const signals = await prisma.signal.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 100
-    });
-    
-    return NextResponse.json({ 
-      ok: true, 
-      count: signals.length,
-      signals 
-    });
+    // Include a tiny analytics payload for dashboard boot
+    const now = new Date();
+    const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+    const [latest, last24h] = await Promise.all([
+      signalDelegate.findFirst({ orderBy: { createdAt: 'desc' } }),
+      signalDelegate.count({ where: { createdAt: { gte: since } } })
+    ]);
+
+    const level = scoreBucket(last24h);
+    return successResponse({ latest, last24h, level });
   } catch (error) {
-    log.error('Failed to fetch signals', { error: String(error) });
-    return NextResponse.json({ error: 'Failed to fetch signals' }, { status: 500 });
+    return errorResponse('Internal server error', 500, error);
   }
 }
 
 export async function POST(req: Request) {
-  if (isProd) {
-    return NextResponse.json({ error: 'Disabled in production' }, { status: 403 });
-  }
-  
-  // Apply rate limiting
-  const ip = req.headers.get('x-forwarded-for') || '127.0.0.1';
-  const { success, limit, remaining, reset } = await rateLimit(ip);
-  
-  if (!success) {
-    return NextResponse.json(
-      { error: 'Too many requests', retryAfter: reset },
-      { 
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': limit.toString(),
-          'X-RateLimit-Remaining': remaining.toString(),
-          'X-RateLimit-Reset': reset.toString()
-        }
-      }
-    );
-  }
-  
+  const guard = prodGuard();
+  if (guard) return guard;
+
   try {
-    const body = await req.json();
-    const signalType = String(body?.type ?? 'debug');
+    const body = await req.json().catch(() => ({}));
+    const type = String(body?.type ?? 'debug');
+    const metadata = sanitizeMeta(body?.meta || {});
     
-    const created = await prisma.signal.create({
+    // Generate required fields for Signal model
+    const unitId = body?.unitId || 'test-unit';
+    const sessionId = body?.sessionId || `sess_${Date.now()}`;
+    // In production, hash the real IP. In dev, use a placeholder.
+    const ip =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      '127.0.0.1';
+    const ipHash =
+      process.env.NODE_ENV === 'production'
+        ? require('crypto').createHash('sha256').update(ip).digest('hex')
+        : 'dev-hash';
+
+    const created = await signalDelegate.create({
       data: { 
-        type: signalType,
-        meta: body?.meta ?? {} 
+        unitId,
+        type, 
+        sessionId,
+        ipHash,
+        metadata,
+        score: 0
       }
     });
-    
-    log.info('Signal created', { type: signalType });
-    return NextResponse.json({ ok: true, created }, { status: 201 });
+
+    return successResponse({ created }, 201);
   } catch (error) {
-    log.error('Failed to create signal', { error: String(error) });
-    return NextResponse.json({ error: 'Failed to create signal' }, { status: 500 });
+    return errorResponse('Internal server error', 500, error);
   }
 }
