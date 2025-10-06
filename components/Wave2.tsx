@@ -1,3 +1,5 @@
+import React from 'react';
+
 // Figma MCP-generated Wave2 component
 // Uses Tailwind CSS for styling
 
