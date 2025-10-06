@@ -1,7 +1,7 @@
 // Wave 2 Enhanced Dashboard Component with comprehensive UX improvements
 'use client'
 
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { TimeRange, DashboardMetrics, Unit, CreateUnitData, ConversionFunnelData, DailyScoreData } from '@/types/dashboard';
 

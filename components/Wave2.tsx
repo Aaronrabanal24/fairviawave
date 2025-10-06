@@ -1,4 +1,4 @@
-import React from 'react';
+// Wave 2 Demo Component - Static JSX only
 import Image from 'next/image';
 
 // Figma MCP-generated Wave2 component
