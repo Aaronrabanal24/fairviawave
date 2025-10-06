@@ -91,7 +91,7 @@ export function BadgeInstallFlow({ unitId, baseUrl = window.location.origin }: B
             <span aria-hidden="true">🏆</span>
             <span>Trust Badge Installation</span>
           </CardTitle>
-          {verified && (
+          {!!verified && (
             <Badge className="bg-green-100 text-green-800">
               <span aria-hidden="true">✓</span> Verified
             </Badge>
@@ -99,7 +99,7 @@ export function BadgeInstallFlow({ unitId, baseUrl = window.location.origin }: B
         </div>
       </CardHeader>
       <CardContent>
-        {error && (
+        {!!error && (
           <div className="mb-4 p-3 bg-red-50 text-red-700 rounded border border-red-200" role="alert">
             {error}
           </div>
@@ -128,7 +128,7 @@ export function BadgeInstallFlow({ unitId, baseUrl = window.location.origin }: B
         <div className="space-y-4">
           <div className="flex gap-3 items-center">
             <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-800 font-medium">1</div>
-            <p>Copy the code above and paste it into your website's HTML</p>
+            <p>Copy the code above and paste it into your website&apos;s HTML</p>
           </div>
           
           <div className="flex gap-3 items-center">
