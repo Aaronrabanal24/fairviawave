@@ -15,7 +15,8 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "e2e": "playwright test",
-    "check:old-tests": "git grep -n \"analyze(page\" -- e2e && echo \"Found legacy analyze(page, …) in e2e\" && exit 1 || echo \"No legacy analyze(page) calls\""
+  "check:old-tests": "git grep -n \"analyze(page\" -- e2e && echo \"Found legacy analyze(page, …) in e2e\" && exit 1 || echo \"No legacy analyze(page) calls\"",
+  "check:delegates": "node scripts/check-prisma-delegates.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
