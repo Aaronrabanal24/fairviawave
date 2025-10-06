@@ -3,9 +3,17 @@ import path from 'path'
 
 export default defineConfig({
   test: {
-    include: ['src/**/*.{test,spec}.ts?(x)'],
-    exclude: ['e2e/**', 'tests/**', 'node_modules/**', '.next/**', 'dist/**'],
-    environment: 'node',
+    environment: "jsdom",
+    setupFiles: ["./test/setup.ts"],
+    globals: true,
+    css: false,
+    pool: "threads",
+    include: ['src/**/*.{test,spec}.ts?(x)', 'tests/**/*.{test,spec}.ts?(x)'],
+    exclude: ['e2e/**', 'node_modules/**', '.next/**', 'dist/**'],
+    coverage: {
+      reporter: ["text", "lcov"],
+      exclude: ["**/*.d.ts", "**/test/**", "**/e2e/**"],
+    },
   },
   resolve: {
     alias: {
