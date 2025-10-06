@@ -3,3 +3,8 @@ node_modules/
 .out
 .env*
 .DS_Store
+
+# Test artifacts
+/test-results/
+/playwright-report/
+/playwright/.cache/
