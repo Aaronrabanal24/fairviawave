@@ -68,26 +68,25 @@ const Wave2Enhanced = () => {
     setShowToast(true);
   }, []);
 
-  // Generate realistic funnel data with variants
-  const generateFunnelData = useCallback((views: number, variant: 'low' | 'medium' | 'high'): ConversionFunnelData[] => {
-    const multipliers = {
-      low: { precheck: 0.15, tour: 0.25, application: 0.40, lease: 0.60 },
-      medium: { precheck: 0.35, tour: 0.45, application: 0.65, lease: 0.75 },
-      high: { precheck: 0.55, tour: 0.70, application: 0.80, lease: 0.85 }
-    };
+  // Generate funnel data from real signal counts
+  const generateFunnelDataFromCounts = useCallback((counts: any): ConversionFunnelData[] => {
+    const views = counts.view_trust || 0;
+    const prechecks = (counts.precheck_start || 0) + (counts.precheck_submit || 0);
+    const tours = counts.tour_request || 0;
+    const applications = (counts.application_open || 0) + (counts.application_submit || 0);
+    const leases = (counts.lease_open || 0) + (counts.lease_signed || 0);
 
-    const rates = multipliers[variant];
-    const prechecks = Math.floor(views * rates.precheck);
-    const tours = Math.floor(prechecks * rates.tour);
-    const applications = Math.floor(tours * rates.application);
-    const leases = Math.floor(applications * rates.lease);
+    // Determine variant based on conversion rates
+    const conversionRate = views > 0 ? (leases / views) * 100 : 0;
+    const variant: 'low' | 'medium' | 'high' =
+      conversionRate < 25 ? 'low' : conversionRate < 45 ? 'medium' : 'high';
 
     return [
       { step: 'View Trust', count: views, conversionRate: 100, variant },
-      { step: 'Precheck', count: prechecks, conversionRate: (prechecks / views) * 100, variant },
-      { step: 'Tour Request', count: tours, conversionRate: (tours / prechecks) * 100, variant },
-      { step: 'Application', count: applications, conversionRate: (applications / tours) * 100, variant },
-      { step: 'Lease Signed', count: leases, conversionRate: (leases / applications) * 100, variant }
+      { step: 'Precheck', count: prechecks, conversionRate: views > 0 ? (prechecks / views) * 100 : 0, variant },
+      { step: 'Tour Request', count: tours, conversionRate: prechecks > 0 ? (tours / prechecks) * 100 : 0, variant },
+      { step: 'Application', count: applications, conversionRate: tours > 0 ? (applications / tours) * 100 : 0, variant },
+      { step: 'Lease Signed', count: leases, conversionRate: applications > 0 ? (leases / applications) * 100 : 0, variant }
     ];
   }, []);
 
@@ -123,25 +122,75 @@ const Wave2Enhanced = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const res = await fetch('/api/units');
-      if (res.ok) {
-        const unitsData = await res.json();
-        setUnits(unitsData);
-        
-        // Calculate enhanced metrics
-        const activeUnits = unitsData.filter((unit: Unit) => unit.status === 'published').length;
-        const totalViews = Math.floor(Math.random() * 200) + 100;
-        const totalPrechecks = Math.floor(Math.random() * 80) + 30;
-        const avgScore = Math.floor(Math.random() * 30) + 70;
-        
-        // Determine conversion variant based on performance
-        const conversionRate = totalPrechecks > 0 ? (totalPrechecks / totalViews) * 100 : 0;
-        const variant: 'low' | 'medium' | 'high' = 
-          conversionRate < 25 ? 'low' : conversionRate < 45 ? 'medium' : 'high';
-        
-        const funnelData = generateFunnelData(totalViews, variant);
+      // Fetch units
+      const unitsRes = await fetch('/api/units');
+      const unitsData = unitsRes.ok ? await unitsRes.json() : [];
+      setUnits(unitsData);
+
+      // Fetch real funnel data from signals API
+      const funnelRes = await fetch(`/api/signals/funnel?unitId=demo-unit&timeRange=${selectedTimeRange}`);
+      const funnelData = funnelRes.ok ? await funnelRes.json() : null;
+
+      // Calculate enhanced metrics
+      const activeUnits = unitsData.filter((unit: Unit) => unit.status === 'published').length;
+
+      let totalViews = 0;
+      let totalPrechecks = 0;
+      let avgScore = 75;
+      let conversionRate = 0;
+      let level: 'low' | 'medium' | 'high' = 'low';
+      let lastUpdated = new Date().toISOString();
+
+      if (funnelData?.ok && funnelData.data) {
+        const { counts, level: activityLevel, totalSignals, lastUpdatedISO } = funnelData.data;
+        totalViews = counts.view_trust;
+        totalPrechecks = counts.precheck_start + counts.precheck_submit;
+        level = activityLevel;
+        lastUpdated = lastUpdatedISO;
+
+        // Calculate conversion rate from precheck to lease signed
+        if (totalViews > 0) {
+          const completedLeases = counts.lease_signed;
+          conversionRate = (completedLeases / totalViews) * 100;
+        }
+
+        // Generate funnel data from real counts
+        const realFunnelData = generateFunnelDataFromCounts(counts);
         const sparklineData = generateSparklineData(selectedTimeRange);
-        
+
+        setMetrics({
+          activeUnits,
+          totalViews,
+          totalPrechecks,
+          avgScore,
+          conversionRate: Math.round(conversionRate),
+          recentActivity: totalSignals,
+          timeRange: selectedTimeRange,
+          funnelData: realFunnelData,
+          sparklineData,
+          lastUpdated
+        });
+      } else {
+        // Fallback to mock data if API fails
+        totalViews = Math.floor(Math.random() * 200) + 100;
+        totalPrechecks = Math.floor(Math.random() * 80) + 30;
+        avgScore = Math.floor(Math.random() * 30) + 70;
+
+        conversionRate = totalPrechecks > 0 ? (totalPrechecks / totalViews) * 100 : 0;
+        level = conversionRate < 25 ? 'low' : conversionRate < 45 ? 'medium' : 'high';
+
+        const mockFunnelData = generateFunnelDataFromCounts({
+          view_trust: totalViews,
+          precheck_start: Math.floor(totalPrechecks * 0.6),
+          precheck_submit: Math.floor(totalPrechecks * 0.4),
+          tour_request: Math.floor(totalPrechecks * 0.5),
+          application_open: Math.floor(totalPrechecks * 0.3),
+          application_submit: Math.floor(totalPrechecks * 0.2),
+          lease_open: Math.floor(totalPrechecks * 0.1),
+          lease_signed: Math.floor(totalPrechecks * 0.05),
+        });
+        const sparklineData = generateSparklineData(selectedTimeRange);
+
         setMetrics({
           activeUnits,
           totalViews,
@@ -150,9 +199,9 @@ const Wave2Enhanced = () => {
           conversionRate: Math.round(conversionRate),
           recentActivity: Math.floor(Math.random() * 20) + 5,
           timeRange: selectedTimeRange,
-          funnelData,
+          funnelData: mockFunnelData,
           sparklineData,
-          lastUpdated: new Date().toISOString()
+          lastUpdated
         });
       }
     } catch (error) {

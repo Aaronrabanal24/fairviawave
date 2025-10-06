@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    // Standard Next.js TypeScript configuration
     "target": "ES2022",
     "lib": ["dom", "dom.iterable", "es2021"],
     "allowJs": false,
@@ -22,3 +23,4 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "prisma/*.ts"],
   "exclude": ["node_modules", "tests", "playwright.config.ts"]
 }
+
