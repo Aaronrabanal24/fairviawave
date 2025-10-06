@@ -4,6 +4,10 @@ node_modules/
 .env*
 .DS_Store
 
+# TypeScript and build artifacts
+tsconfig.tsbuildinfo
+dmmf.json
+
 # Test artifacts
 /test-results/
 /playwright-report/
