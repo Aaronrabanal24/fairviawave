@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 // Figma MCP-generated Wave2 component
 // Uses Tailwind CSS for styling
@@ -44,7 +45,7 @@ export default function Wave2() {
               </div>
               <div className="flex items-center gap-4">
                 <button className="p-2 hover:bg-gray-100 rounded-lg">
-                  <img src={imgIcon} alt="" className="w-5 h-5" />
+                  <Image src={imgIcon} alt="Settings" width={20} height={20} className="w-5 h-5" />
                 </button>
                 <div className="w-8 h-8 bg-[#3B82F6] rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">A</span>
@@ -64,7 +65,7 @@ export default function Wave2() {
                     <p className="text-2xl font-semibold text-[#18181B]">12</p>
                   </div>
                   <div className="w-10 h-10 bg-[#EFF6FF] rounded-lg flex items-center justify-center">
-                    <img src={imgIcon1} alt="" className="w-5 h-5" />
+                    <Image src={imgIcon1} alt="Units" width={20} height={20} className="w-5 h-5" />
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mt-4">
@@ -81,7 +82,7 @@ export default function Wave2() {
                     <p className="text-2xl font-semibold text-[#18181B]">2,350</p>
                   </div>
                   <div className="w-10 h-10 bg-[#F0FDF4] rounded-lg flex items-center justify-center">
-                    <img src={imgIcon2} alt="" className="w-5 h-5" />
+                    <Image src={imgIcon2} alt="Views" width={20} height={20} className="w-5 h-5" />
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mt-4">
@@ -98,7 +99,7 @@ export default function Wave2() {
                     <p className="text-2xl font-semibold text-[#18181B]">12,234</p>
                   </div>
                   <div className="w-10 h-10 bg-[#FEF3C7] rounded-lg flex items-center justify-center">
-                    <img src={imgIcon3} alt="" className="w-5 h-5" />
+                    <Image src={imgIcon3} alt="Prechecks" width={20} height={20} className="w-5 h-5" />
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mt-4">
@@ -115,7 +116,7 @@ export default function Wave2() {
                     <p className="text-2xl font-semibold text-[#18181B]">573</p>
                   </div>
                   <div className="w-10 h-10 bg-[#FEE2E2] rounded-lg flex items-center justify-center">
-                    <img src={imgIcon4} alt="" className="w-5 h-5" />
+                    <Image src={imgIcon4} alt="Score" width={20} height={20} className="w-5 h-5" />
                   </div>
                 </div>
                 <div className="flex items-center gap-1 mt-4">
@@ -135,7 +136,7 @@ export default function Wave2() {
               </div>
               
               <div className="relative h-[280px] bg-[#FAFAFA] rounded-lg flex items-center justify-center">
-                <img src={imgGroup} alt="Chart" className="max-w-full max-h-full" />
+                <Image src={imgGroup} alt="Analytics Chart" width={400} height={300} className="max-w-full max-h-full" />
               </div>
             </div>
           </div>
@@ -348,7 +349,7 @@ export default function Wave2() {
           {/* Logo */}
           <div className="flex items-center gap-3 mb-8">
             <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex items-center justify-center">
-              <img src={imgIcon5} alt="" className="w-4 h-4" />
+              <Image src={imgIcon5} alt="Menu" width={16} height={16} className="w-4 h-4" />
             </div>
             <span className="text-white font-semibold">Fairvia</span>
           </div>
@@ -356,23 +357,23 @@ export default function Wave2() {
           {/* Navigation */}
           <nav className="space-y-2">
             <a href="#" className="flex items-center gap-3 px-3 py-2 bg-[#3B82F6] text-white rounded-lg">
-              <img src={imgIcon6} alt="" className="w-5 h-5" />
+              <Image src={imgIcon6} alt="View" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Dashboard</span>
             </a>
             <a href="#" className="flex items-center gap-3 px-3 py-2 text-[#A1A1AA] hover:text-white hover:bg-[#27272A] rounded-lg">
-              <img src={imgIcon7} alt="" className="w-5 h-5" />
+              <Image src={imgIcon7} alt="Export" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Units</span>
             </a>
             <a href="#" className="flex items-center gap-3 px-3 py-2 text-[#A1A1AA] hover:text-white hover:bg-[#27272A] rounded-lg">
-              <img src={imgIcon8} alt="" className="w-5 h-5" />
+              <Image src={imgIcon8} alt="Settings" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Events</span>
             </a>
             <a href="#" className="flex items-center gap-3 px-3 py-2 text-[#A1A1AA] hover:text-white hover:bg-[#27272A] rounded-lg">
-              <img src={imgIcon9} alt="" className="w-5 h-5" />
+              <Image src={imgIcon9} alt="Timeline" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Analytics</span>
             </a>
             <a href="#" className="flex items-center gap-3 px-3 py-2 text-[#A1A1AA] hover:text-white hover:bg-[#27272A] rounded-lg">
-              <img src={imgIcon10} alt="" className="w-5 h-5" />
+              <Image src={imgIcon10} alt="Archive" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Reports</span>
             </a>
           </nav>
@@ -380,11 +381,11 @@ export default function Wave2() {
           {/* Settings */}
           <div className="mt-8 pt-8 border-t border-[#27272A]">
             <a href="#" className="flex items-center gap-3 px-3 py-2 text-[#A1A1AA] hover:text-white hover:bg-[#27272A] rounded-lg">
-              <img src={imgIcon11} alt="" className="w-5 h-5" />
+              <Image src={imgIcon11} alt="Analytics" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Settings</span>
             </a>
             <a href="#" className="flex items-center gap-3 px-3 py-2 text-[#A1A1AA] hover:text-white hover:bg-[#27272A] rounded-lg">
-              <img src={imgIcon12} alt="" className="w-5 h-5" />
+              <Image src={imgIcon12} alt="Configuration" width={20} height={20} className="w-5 h-5" />
               <span className="text-sm font-medium">Help</span>
             </a>
           </div>
@@ -400,7 +401,7 @@ export default function Wave2() {
               <p className="text-sm font-medium text-white">Admin User</p>
               <p className="text-xs text-[#A1A1AA]">admin@fairvia.com</p>
             </div>
-            <img src={imgIcon13} alt="" className="w-4 h-4 text-[#A1A1AA]" />
+            <Image src={imgIcon13} alt="Menu" width={16} height={16} className="w-4 h-4 text-[#A1A1AA]" />
           </div>
         </div>
       </div>
