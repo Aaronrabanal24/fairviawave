@@ -96,7 +96,8 @@ export function FunnelCard({
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            📊 Conversion Funnel
+            <span aria-hidden="true">📊</span>
+            <span>Conversion Funnel</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -117,10 +118,13 @@ export function FunnelCard({
     return (
       <Card className="w-full border-red-200">
         <CardHeader>
-          <CardTitle className="text-red-600">⚠️ Funnel Data Error</CardTitle>
+          <CardTitle className="text-red-600">
+            <span aria-hidden="true">⚠️</span>
+            <span>Funnel Data Error</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600" role="alert">{error}</p>
         </CardContent>
       </Card>
     );
@@ -130,7 +134,10 @@ export function FunnelCard({
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>📊 Conversion Funnel</CardTitle>
+          <CardTitle>
+            <span aria-hidden="true">📊</span>
+            <span>Conversion Funnel</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-500">No data available</p>
@@ -141,53 +148,82 @@ export function FunnelCard({
 
   const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
   const levelConfig = LEVEL_CONFIG[level];
+  
+  // Define descriptions for tooltips
+  const STAGE_DESCRIPTIONS = {
+    view_trust: 'Number of visitors who viewed your property trust badge',
+    precheck_start: 'Visitors who began a prequalification check',
+    precheck_complete: 'Visitors who completed the prequalification process',
+    tour_request: 'Qualified leads who requested a tour',
+    tour_scheduled: 'Tours that were successfully scheduled',
+    application_start: 'Prospects who began filling an application',
+    application_submit: 'Prospects who submitted a complete application',
+    lease_signed: 'Applications that converted to signed leases'
+  };
+
+  // Define level tooltip messages
+  const LEVEL_DESCRIPTIONS = {
+    low: 'Low activity: Less than 5 events in the last 24 hours',
+    medium: 'Medium activity: 5-20 events in the last 24 hours',
+    high: 'High activity: 20+ events in the last 24 hours'
+  };
 
   return (
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            📊 Conversion Funnel
+            <span aria-hidden="true">📊</span>
+            <span>Conversion Funnel</span>
           </CardTitle>
-          <Badge className={levelConfig.color}>
-            {levelConfig.emoji} {level.toUpperCase()}
+          <Badge 
+            className={levelConfig.color}
+            title={LEVEL_DESCRIPTIONS[level]}
+            aria-label={`Activity level: ${level}. ${LEVEL_DESCRIPTIONS[level]}`}
+          >
+            <span aria-hidden="true">{levelConfig.emoji}</span> {level.toUpperCase()}
           </Badge>
         </div>
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <span className="flex items-center gap-1">
-            👥 {total} total signals
+            <span aria-hidden="true">👥</span> {total.toLocaleString()} total signals
           </span>
           {!!lastUpdated && (
-            <span className="flex items-center gap-1">
-              🕒 {new Date(lastUpdated).toLocaleTimeString()}
+            <span className="flex items-center gap-1" title={`Last updated: ${new Date(lastUpdated).toLocaleString()}`}>
+              <span aria-hidden="true">🕒</span> {new Date(lastUpdated).toLocaleTimeString()}
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-4">
           {Object.entries(STAGE_LABELS).map(([stage, label]) => {
             const count = counts[stage as keyof FunnelCounts] || 0;
             const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+            const description = STAGE_DESCRIPTIONS[stage as keyof typeof STAGE_DESCRIPTIONS];
             
             return (
-              <div key={stage} className="flex items-center justify-between">
+              <div 
+                key={stage} 
+                className="flex items-center justify-between py-1 border-b border-gray-100 last:border-b-0"
+                title={description}
+              >
                 <div className="flex items-center gap-3 flex-1">
-                  <span className="text-sm font-medium min-w-0 flex-1">{label}</span>
+                  <span className="text-sm font-medium min-w-0 flex-1" id={`label-${stage}`}>{label}</span>
                   <div className="flex items-center gap-2">
-                    <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div className="w-20 bg-gray-200 rounded-full h-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percentage} aria-labelledby={`label-${stage}`}>
                       <div 
                         className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${Math.min(percentage, 100)}%` }}
                       />
                     </div>
-                    <span className="text-xs text-gray-500 w-8 text-right">
+                    <span className="text-xs text-gray-500 w-10 text-right">
                       {percentage}%
                     </span>
                   </div>
                 </div>
-                <span className="text-lg font-semibold text-gray-900 ml-3 min-w-[2rem] text-right">
-                  {count}
+                <span className="text-lg font-semibold text-gray-900 ml-3 min-w-[3rem] tabular-nums text-right">
+                  {count.toLocaleString()}
                 </span>
               </div>
             );
