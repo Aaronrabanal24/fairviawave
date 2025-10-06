@@ -1,10 +1,11 @@
 name: Security Headers Check
 
-on:
-  schedule:
-    # Run daily at 9 AM UTC
-    - cron: '0 9 * * *'
-  workflow_dispatch:
+# Disabled - uncomment to re-enable
+# on:
+#   schedule:
+#     # Run daily at 9 AM UTC
+#     - cron: '0 9 * * *'
+#   workflow_dispatch:
 
 jobs:
   check-headers:

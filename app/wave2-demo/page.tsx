@@ -153,7 +153,20 @@ export default function Wave2Demo() {
 
         {/* Analytics Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <FunnelCard unitId="demo-unit" />
+          <FunnelCard
+            counts={{
+              view_trust: 45,
+              precheck_start: 32,
+              precheck_submit: 28,
+              tour_request: 18,
+              application_open: 12,
+              application_submit: 8,
+              lease_open: 5,
+              lease_signed: 3,
+            }}
+            level="medium"
+            lastUpdatedISO={new Date().toISOString()}
+          />
           <DailyScoreSparkline unitId="demo-unit" />
         </div>
 
