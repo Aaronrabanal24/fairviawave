@@ -1,13 +1,5 @@
-node_modules
-.next
-.env
-.env.local
-dist
-.vercel
-pnpm-lock.yaml
-yarn.lock
-
-# Test artifacts
-playwright-report/
-test-results/
-*.spec.js.map
+node_modules/
+/.next
+.out
+.env*
+.DS_Store
