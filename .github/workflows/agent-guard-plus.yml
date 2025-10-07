@@ -41,8 +41,16 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile || pnpm install
 
+      - name: Show versions
+        run: |
+          node -v
+          pnpm -v
+
       - name: Generate Prisma Client
         run: npx prisma generate
+
+      - name: Validate schema
+        run: npx prisma validate
 
       - name: Apply DB migrations
         run: npx prisma migrate deploy

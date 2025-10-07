@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { z } from "zod";
 
 export const runtime = "nodejs";       // ensure Node runtime (not Edge)
 export const dynamic = "force-dynamic"; // always compute
 export const revalidate = 0;           // no static cache for this API
+
+const Q = z.object({
+  unitId: z.string().min(1),
+  days: z.coerce.number().int().min(1).max(90).default(30),
+});
 
 const W: Record<string, number> = {
   view_trust: 1, 
@@ -27,10 +33,12 @@ export type SparklineResponse = {
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url)
-    const unitId = url.searchParams.get("unitId")
-    if (!unitId) {
-      return NextResponse.json({ error: "unitId required" }, { status: 400 })
-    }
+    const parsed = Q.safeParse({ 
+      unitId: url.searchParams.get("unitId"),
+      days: url.searchParams.get("days")
+    });
+    if (!parsed.success) return NextResponse.json({ error: "bad query" }, { status: 400 });
+    const { unitId, days } = parsed.data;
 
     // Verify unit exists and is published
     const unit = await prisma.unit.findUnique({
@@ -46,7 +54,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "unit not published" }, { status: 403 })
     }
 
-    const days = Math.max(1, Math.min(90, Number(url.searchParams.get("days") ?? 30)))
     const since = new Date(Date.now() - days*24*60*60*1000)
 
     const rows = await prisma.$queryRaw<{day: Date, score: number}[]>`
