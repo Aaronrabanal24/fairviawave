@@ -1,0 +1,4 @@
+# .github/CODEOWNERS
+/scripts/agent/**   @Aaronrabanal24
+/.github/workflows/agent.yml   @Aaronrabanal24
+/scripts/policy/**  @Aaronrabanal24
