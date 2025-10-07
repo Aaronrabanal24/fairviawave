@@ -3,7 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "clean:prisma": "rm -rf .prisma node_modules/.prisma prisma/generated",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -31,9 +30,6 @@
     "@prisma/client": "5.19.1",
     "@supabase/ssr": "0.5.1",
     "@supabase/supabase-js": "2.45.4",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "next": "14.2.5",
     "node-fetch": "^3.3.2",
@@ -41,15 +37,12 @@
     "qrcode": "1.5.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "server-only": "^0.0.1",
-    "tailwind-merge": "^3.3.1"
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.2",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.55.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
     "@types/node": "20.11.30",
     "@types/qrcode": "^1.5.5",
     "@types/react": "18.2.48",
@@ -64,7 +57,6 @@
     "ts-node": "10.9.2",
     "tsx": "^4.20.6",
     "typescript": "5.4.5",
-    "undici": "^7.16.0",
     "vitest": "^1.6.0"
   },
   "engines": {

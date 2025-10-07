@@ -68,25 +68,26 @@ const Wave2Enhanced = () => {
     setShowToast(true);
   }, []);
 
-  // Generate funnel data from real signal counts
-  const generateFunnelDataFromCounts = useCallback((counts: any): ConversionFunnelData[] => {
-    const views = counts.view_trust || 0;
-    const prechecks = (counts.precheck_start || 0) + (counts.precheck_submit || 0);
-    const tours = counts.tour_request || 0;
-    const applications = (counts.application_open || 0) + (counts.application_submit || 0);
-    const leases = (counts.lease_open || 0) + (counts.lease_signed || 0);
+  // Generate realistic funnel data with variants
+  const generateFunnelData = useCallback((views: number, variant: 'low' | 'medium' | 'high'): ConversionFunnelData[] => {
+    const multipliers = {
+      low: { precheck: 0.15, tour: 0.25, application: 0.40, lease: 0.60 },
+      medium: { precheck: 0.35, tour: 0.45, application: 0.65, lease: 0.75 },
+      high: { precheck: 0.55, tour: 0.70, application: 0.80, lease: 0.85 }
+    };
 
-    // Determine variant based on conversion rates
-    const conversionRate = views > 0 ? (leases / views) * 100 : 0;
-    const variant: 'low' | 'medium' | 'high' =
-      conversionRate < 25 ? 'low' : conversionRate < 45 ? 'medium' : 'high';
+    const rates = multipliers[variant];
+    const prechecks = Math.floor(views * rates.precheck);
+    const tours = Math.floor(prechecks * rates.tour);
+    const applications = Math.floor(tours * rates.application);
+    const leases = Math.floor(applications * rates.lease);
 
     return [
       { step: 'View Trust', count: views, conversionRate: 100, variant },
-      { step: 'Precheck', count: prechecks, conversionRate: views > 0 ? (prechecks / views) * 100 : 0, variant },
-      { step: 'Tour Request', count: tours, conversionRate: prechecks > 0 ? (tours / prechecks) * 100 : 0, variant },
-      { step: 'Application', count: applications, conversionRate: tours > 0 ? (applications / tours) * 100 : 0, variant },
-      { step: 'Lease Signed', count: leases, conversionRate: applications > 0 ? (leases / applications) * 100 : 0, variant }
+      { step: 'Precheck', count: prechecks, conversionRate: (prechecks / views) * 100, variant },
+      { step: 'Tour Request', count: tours, conversionRate: (tours / prechecks) * 100, variant },
+      { step: 'Application', count: applications, conversionRate: (applications / tours) * 100, variant },
+      { step: 'Lease Signed', count: leases, conversionRate: (leases / applications) * 100, variant }
     ];
   }, []);
 
@@ -122,75 +123,25 @@ const Wave2Enhanced = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch units
-      const unitsRes = await fetch('/api/units');
-      const unitsData = unitsRes.ok ? await unitsRes.json() : [];
-      setUnits(unitsData);
-
-      // Fetch real funnel data from signals API
-      const funnelRes = await fetch(`/api/signals/funnel?unitId=demo-unit&timeRange=${selectedTimeRange}`);
-      const funnelData = funnelRes.ok ? await funnelRes.json() : null;
-
-      // Calculate enhanced metrics
-      const activeUnits = unitsData.filter((unit: Unit) => unit.status === 'published').length;
-
-      let totalViews = 0;
-      let totalPrechecks = 0;
-      let avgScore = 75;
-      let conversionRate = 0;
-      let level: 'low' | 'medium' | 'high' = 'low';
-      let lastUpdated = new Date().toISOString();
-
-      if (funnelData?.ok && funnelData.data) {
-        const { counts, level: activityLevel, totalSignals, lastUpdatedISO } = funnelData.data;
-        totalViews = counts.view_trust;
-        totalPrechecks = counts.precheck_start + counts.precheck_submit;
-        level = activityLevel;
-        lastUpdated = lastUpdatedISO;
-
-        // Calculate conversion rate from precheck to lease signed
-        if (totalViews > 0) {
-          const completedLeases = counts.lease_signed;
-          conversionRate = (completedLeases / totalViews) * 100;
-        }
-
-        // Generate funnel data from real counts
-        const realFunnelData = generateFunnelDataFromCounts(counts);
+      const res = await fetch('/api/units');
+      if (res.ok) {
+        const unitsData = await res.json();
+        setUnits(unitsData);
+        
+        // Calculate enhanced metrics
+        const activeUnits = unitsData.filter((unit: Unit) => unit.status === 'published').length;
+        const totalViews = Math.floor(Math.random() * 200) + 100;
+        const totalPrechecks = Math.floor(Math.random() * 80) + 30;
+        const avgScore = Math.floor(Math.random() * 30) + 70;
+        
+        // Determine conversion variant based on performance
+        const conversionRate = totalPrechecks > 0 ? (totalPrechecks / totalViews) * 100 : 0;
+        const variant: 'low' | 'medium' | 'high' = 
+          conversionRate < 25 ? 'low' : conversionRate < 45 ? 'medium' : 'high';
+        
+        const funnelData = generateFunnelData(totalViews, variant);
         const sparklineData = generateSparklineData(selectedTimeRange);
-
-        setMetrics({
-          activeUnits,
-          totalViews,
-          totalPrechecks,
-          avgScore,
-          conversionRate: Math.round(conversionRate),
-          recentActivity: totalSignals,
-          timeRange: selectedTimeRange,
-          funnelData: realFunnelData,
-          sparklineData,
-          lastUpdated
-        });
-      } else {
-        // Fallback to mock data if API fails
-        totalViews = Math.floor(Math.random() * 200) + 100;
-        totalPrechecks = Math.floor(Math.random() * 80) + 30;
-        avgScore = Math.floor(Math.random() * 30) + 70;
-
-        conversionRate = totalPrechecks > 0 ? (totalPrechecks / totalViews) * 100 : 0;
-        level = conversionRate < 25 ? 'low' : conversionRate < 45 ? 'medium' : 'high';
-
-        const mockFunnelData = generateFunnelDataFromCounts({
-          view_trust: totalViews,
-          precheck_start: Math.floor(totalPrechecks * 0.6),
-          precheck_submit: Math.floor(totalPrechecks * 0.4),
-          tour_request: Math.floor(totalPrechecks * 0.5),
-          application_open: Math.floor(totalPrechecks * 0.3),
-          application_submit: Math.floor(totalPrechecks * 0.2),
-          lease_open: Math.floor(totalPrechecks * 0.1),
-          lease_signed: Math.floor(totalPrechecks * 0.05),
-        });
-        const sparklineData = generateSparklineData(selectedTimeRange);
-
+        
         setMetrics({
           activeUnits,
           totalViews,
@@ -199,9 +150,9 @@ const Wave2Enhanced = () => {
           conversionRate: Math.round(conversionRate),
           recentActivity: Math.floor(Math.random() * 20) + 5,
           timeRange: selectedTimeRange,
-          funnelData: mockFunnelData,
+          funnelData,
           sparklineData,
-          lastUpdated
+          lastUpdated: new Date().toISOString()
         });
       }
     } catch (error) {
@@ -392,10 +343,10 @@ const Wave2Enhanced = () => {
         <button
           key={range}
           onClick={() => setSelectedTimeRange(range)}
-          className={`px-3 py-2 text-sm font-medium rounded transition-all min-h-[44px] ${
+          className={`px-3 py-1 text-sm font-medium rounded transition-all ${
             selectedTimeRange === range
               ? 'bg-white text-blue-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              : 'text-gray-600 hover:text-gray-900'
           }`}
           role="tab"
           aria-selected={selectedTimeRange === range}
@@ -409,77 +360,71 @@ const Wave2Enhanced = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center" role="status" aria-live="polite">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" aria-hidden="true"></div>
-          <p className="mt-4 text-gray-600 text-base sm:text-lg">Loading dashboard...</p>
-          <span className="sr-only">Please wait while the dashboard loads</span>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-6 sm:mb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Owner Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-600" aria-live="polite">
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Owner Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-600">
               Last updated: {new Date(metrics.lastUpdated).toLocaleTimeString()}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="mt-4 sm:mt-0 flex items-center space-x-3">
             <TimeRangeSelector />
-            <div className="flex gap-3">
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className={`flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors min-h-[44px] ${
-                  refreshing ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                aria-label="Refresh dashboard data"
-                aria-live="polite"
-                aria-busy={refreshing}
-              >
-                {refreshing ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Refreshing...</span>
-                  </span>
-                ) : (
-                  'Refresh'
-                )}
-              </button>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex-1 sm:flex-none px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 transition-colors min-h-[44px]"
-                aria-label="Create new unit"
-              >
-                <span className="hidden sm:inline">+ Create Unit</span>
-                <span className="sm:hidden">+ Unit</span>
-              </button>
-            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${
+                refreshing ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+              aria-label="Refresh dashboard data"
+            >
+              {refreshing ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Refreshing...
+                </span>
+              ) : (
+                'Refresh'
+              )}
+            </button>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+              aria-label="Create new unit"
+            >
+              + Create Unit
+            </button>
           </div>
         </div>
       </div>
 
       {/* Stats Grid */}
-      <section className="max-w-7xl mx-auto mb-6 sm:mb-8" aria-label="Dashboard metrics">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Active Units Card */}
-          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Active Units</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{metrics.activeUnits}</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics.activeUnits}</p>
               </div>
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg className="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H5m14 0v-2a2 2 0 00-2-2H7a2 2 0 00-2 2v2" />
                 </svg>
               </div>
@@ -487,17 +432,17 @@ const Wave2Enhanced = () => {
             <div className="mt-4">
               <Sparkline data={metrics.sparklineData.data.map(d => ({ ...d, score: d.score * 0.8 }))} className="text-blue-500" />
             </div>
-          </article>
+          </div>
 
           {/* Total Views Card */}
-          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Total Views</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{metrics.totalViews}</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics.totalViews}</p>
               </div>
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                <svg className="h-4 w-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
@@ -512,10 +457,10 @@ const Wave2Enhanced = () => {
                 {metrics.sparklineData.change > 0 ? '+' : ''}{metrics.sparklineData.change}
               </span>
             </div>
-          </article>
+          </div>
 
           {/* Average Score Card */}
-          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Daily Trust Score</p>
@@ -533,17 +478,17 @@ const Wave2Enhanced = () => {
                 {selectedTimeRange} average: {metrics.sparklineData.avg}
               </p>
             </div>
-          </article>
+          </div>
 
           {/* Conversion Rate Card */}
-          <article className="bg-white rounded-lg shadow-sm p-4 sm:p-6 border border-gray-200">
+          <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
+              <div>
                 <p className="text-sm font-medium text-gray-600">Conversion Rate</p>
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900 tabular-nums">{metrics.conversionRate}%</p>
+                <p className="text-2xl font-bold text-gray-900">{metrics.conversionRate}%</p>
               </div>
-              <div className="h-10 w-10 sm:h-12 sm:w-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                <svg className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="h-8 w-8 bg-orange-100 rounded-full flex items-center justify-center">
+                <svg className="h-4 w-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
@@ -559,14 +504,14 @@ const Wave2Enhanced = () => {
                 {metrics.conversionRate > 40 ? 'High' : metrics.conversionRate > 25 ? 'Medium' : 'Low'} performance
               </div>
             </div>
-          </article>
+          </div>
         </div>
-      </section>
+      </div>
 
       {/* Main Content Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Analytics */}
-        <section className="lg:col-span-2 space-y-6" aria-label="Analytics and units">
+        <div className="lg:col-span-2 space-y-6">
           {/* Conversion Funnel */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="p-6">
@@ -629,10 +574,10 @@ const Wave2Enhanced = () => {
               </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* Right Column - Live Stats */}
-        <aside className="space-y-6" aria-label="Live statistics">
+        <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Live Activity</h3>
             <div className="space-y-4">
@@ -653,7 +598,7 @@ const Wave2Enhanced = () => {
               </div>
             </div>
           </div>
-        </aside>
+        </div>
       </div>
 
       {/* Create Unit Modal */}

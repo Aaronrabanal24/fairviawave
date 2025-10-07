@@ -19,7 +19,6 @@ export function useBool(initial = false) {
  */
 export function useMemoEq<T>(val: T): T {
   const serialized = JSON.stringify(val);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   return useMemo(() => val, [serialized]);
 }
 
