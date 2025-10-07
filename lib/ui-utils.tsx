@@ -18,8 +18,10 @@ export function useBool(initial = false) {
  * Memoization with deep equality (use sparingly)
  */
 export function useMemoEq<T>(val: T): T {
-  const serialized = JSON.stringify(val);
-  return useMemo(() => val, [serialized]);
+  return useMemo(() => {
+    const serialized = JSON.stringify(val);
+    return val;
+  }, [val]);
 }
 
 /**
