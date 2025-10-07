@@ -31,13 +31,13 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Redirect to login if not authenticated and trying to access protected routes
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  // Redirect to login if not authenticated and trying to access protected routes (only in production)
+  if (process.env.NODE_ENV === 'production' && !user && request.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Redirect to dashboard if authenticated and trying to access login
-  if (user && request.nextUrl.pathname === '/login') {
+  // Redirect to dashboard if authenticated and trying to access login (only in production)
+  if (process.env.NODE_ENV === 'production' && user && request.nextUrl.pathname === '/login') {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 

@@ -57,6 +57,7 @@ model Signal {
   id        String   @id @default(cuid())
   unitId    String
   type      String // ConversionSignalType: view_trust, precheck_start, etc.
+  stage     String? // Funnel stage: view_trust, precheck_start, etc.
   sessionId String
   userId    String?
   ipHash    String

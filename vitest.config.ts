@@ -3,7 +3,7 @@ import path from 'path'
 
 export default defineConfig({
   test: {
-    include: ['src/**/*.{test,spec}.ts?(x)'],
+    include: ['src/**/*.{test,spec}.ts?(x)', 'app/**/*.{test,spec}.ts?(x)'],
     exclude: ['e2e/**', 'tests/**', 'node_modules/**', '.next/**', 'dist/**'],
     environment: 'node',
   },

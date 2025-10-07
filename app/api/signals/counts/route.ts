@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { signalDelegate } from '@/lib/delegates/signal';
+import { prisma } from '@/lib/db';
 import { scoreBucket } from '@/lib/score';
 
 // Force dynamic for production build
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     // Get counts for each stage
     const stageCounts = await Promise.all(
       CONVERSION_STAGES.map(async (stage) => {
-        const count = await signalDelegate.count({
+        const count = await prisma.signal.count({
           where: {
             unitId,
             type: stage,

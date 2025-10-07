@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { signalDelegate } from '@/lib/delegates/signal';
+import { prisma } from '@/lib/db';
 import { sanitizeMeta } from '@/lib/sanitize';
 import { scoreBucket } from '@/lib/score';
 import { prodGuard, successResponse, errorResponse } from '@/lib/api-utils';
@@ -11,8 +11,8 @@ export async function GET() {
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const [latest, last24h] = await Promise.all([
-      signalDelegate.findFirst({ orderBy: { createdAt: 'desc' } }),
-      signalDelegate.count({ where: { createdAt: { gte: since } } })
+      prisma.signal.findFirst({ orderBy: { createdAt: 'desc' } }),
+      prisma.signal.count({ where: { createdAt: { gte: since } } })
     ]);
 
     const level = scoreBucket(last24h);
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     const sessionId = body?.sessionId || `sess_${Date.now()}`;
     const ipHash = 'dev-hash';
 
-    const created = await signalDelegate.create({
+    const created = await prisma.signal.create({
       data: { 
         unitId,
         type, 
