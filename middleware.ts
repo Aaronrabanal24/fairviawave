@@ -1,7 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Run middleware on app pages only — NEVER on API or Next internals.
+export const config = {
+  matcher: [
+    // Everything except /api, Next internals, and common static assets
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|ico|webp|css|js|map)$).*)",
+  ],
+};
+
 export async function middleware(request: NextRequest) {
+  // Belt-and-suspenders: if this still sees /api, let it pass untouched.
+  if (request.nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -41,11 +53,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  supabaseResponse.headers.set("x-fairvia-mw", "pass");
   return supabaseResponse
-}
-
-export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
 }
