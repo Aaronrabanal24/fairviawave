@@ -1,75 +1,71 @@
-import { NextResponse } from 'next/server';
-import { signalDelegate } from '@/lib/delegates/signal';
-import { scoreBucket } from '@/lib/score';
-import { successResponse, errorResponse } from '@/lib/api-utils';
+import { NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import type { FunnelResponse } from "@/types/funnel"
 
-export async function GET(req: Request) {
+const STAGES = [
+  "view_trust","precheck_start","precheck_submit","tour_request",
+  "application_open","application_submit","lease_open","lease_signed",
+] as const
+type Stage = typeof STAGES[number]
+
+const EMPTY: Record<Stage, number> = {
+  view_trust: 0, precheck_start: 0, precheck_submit: 0, tour_request: 0,
+  application_open: 0, application_submit: 0, lease_open: 0, lease_signed: 0,
+}
+
+function toLevel(total: number): "low"|"medium"|"high" {
+  if (total >= 25) return "high"
+  if (total >= 8)  return "medium"
+  return "low"
+}
+
+export async function GET(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const unitId = url.searchParams.get('unitId') || 'demo-unit';
-    const timeRange = url.searchParams.get('timeRange') || '24h';
+    const url = new URL(req.url)
+    const unitId = url.searchParams.get("unitId")
+    if (!unitId) {
+      return NextResponse.json({ error: "unitId required" }, { status: 400 })
+    }
+    
+    const days = Math.max(1, Math.min(90, Number(url.searchParams.get("days") ?? 30)))
 
-    // Calculate time range
-    const now = new Date();
-    let since: Date;
-    switch (timeRange) {
-      case '1h':
-        since = new Date(now.getTime() - 60 * 60 * 1000);
-        break;
-      case '24h':
-        since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        break;
-      case '7d':
-        since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case '30d':
-        since = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    // Single grouped query using indexed fields
+    const since = new Date(Date.now() - days*24*60*60*1000)
+    const grouped = await prisma.signal.groupBy({
+      by: ["type"],
+      _count: { 
+        _all: true 
+      },
+      // RLS safe - no PII exposed, just counts
+      // indexed fields for efficiency (unitId, createdAt)
+      where: { 
+        unitId, 
+        createdAt: { gte: since }
+      }
+    })
+
+    const counts = { ...EMPTY }
+    for (const row of grouped) {
+      const k = row.type as Stage
+      if (STAGES.includes(k) && row._count) {
+        counts[k] = typeof row._count === 'boolean' ? 0 : (row._count._all ?? 0)
+      }
+    }
+    
+    const total = Object.values(counts).reduce((a,b)=>a+b,0)
+    const level = toLevel(total)
+    const body: FunnelResponse = { 
+      counts, 
+      level, 
+      lastUpdatedISO: new Date().toISOString() 
     }
 
-    // Aggregate signal counts by type for the specified unit and time range
-    const signalCounts = await signalDelegate.findMany({
-      where: {
-        unitId,
-        createdAt: { gte: since }
-      },
-      select: {
-        type: true,
-        _count: true
-      }
-    });
-
-    // Group by type and count
-    const countsByType: Record<string, number> = {};
-    signalCounts.forEach(signal => {
-      countsByType[signal.type] = (countsByType[signal.type] || 0) + 1;
-    });
-
-    // Map to FunnelCounts structure
-    const funnelCounts = {
-      view_trust: countsByType.view_trust || 0,
-      precheck_start: countsByType.precheck_start || 0,
-      precheck_submit: countsByType.precheck_submit || 0,
-      tour_request: countsByType.tour_request || 0,
-      application_open: countsByType.application_open || 0,
-      application_submit: countsByType.application_submit || 0,
-      lease_open: countsByType.lease_open || 0,
-      lease_signed: countsByType.lease_signed || 0,
-    };
-
-    // Calculate activity level based on total signals
-    const totalSignals = Object.values(funnelCounts).reduce((sum, count) => sum + count, 0);
-    const level = scoreBucket(totalSignals);
-
-    return successResponse({
-      counts: funnelCounts,
-      level,
-      totalSignals,
-      lastUpdatedISO: now.toISOString()
-    });
-  } catch (error) {
-    return errorResponse('Failed to fetch funnel data', 500, error);
+    const res = NextResponse.json(body, { status: 200 })
+    // Cache hints for public Owner Dashboard fetches
+    res.headers.set("Cache-Control", "s-maxage=30, stale-while-revalidate=120")
+    return res
+  } catch (err) {
+    // Never leak internals
+    return NextResponse.json({ error: "failed to load funnel" }, { status: 500 })
   }
 }
