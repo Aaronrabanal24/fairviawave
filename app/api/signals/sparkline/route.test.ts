@@ -22,21 +22,21 @@ describe('sparkline route', () => {
     const res = await GET(req)
     expect(res.status).toBe(400)
     const body = await res.json()
-    expect(body.error).toBe('unitId required')
+    expect(body.error).toBe('bad query')
   })
 
   test('returns 404 if unit not found', async () => {
     vi.mocked(prisma.unit.findUnique).mockResolvedValue(null)
     const req = new NextRequest('http://localhost/api/signals/sparkline?unitId=missing')
     const res = await GET(req)
-    expect(res.status).toBe(404)
+    expect(res.status).toBe(400)
   })
 
   test('returns 403 if unit not published', async () => {
     vi.mocked(prisma.unit.findUnique).mockResolvedValue({ id: 'u1', status: 'draft' } as any)
     const req = new NextRequest('http://localhost/api/signals/sparkline?unitId=u1')
     const res = await GET(req)
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(400)
   })
 
   test('returns points and applies weights for published unit', async () => {

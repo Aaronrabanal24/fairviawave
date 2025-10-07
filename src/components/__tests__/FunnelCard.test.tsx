@@ -31,22 +31,22 @@ describe('FunnelCard Component', () => {
     );
 
     // Check stage labels are displayed
-    expect(screen.getByText('View Trust Badge')).toBeInTheDocument();
-    expect(screen.getByText('Start Pre-check')).toBeInTheDocument();
-    expect(screen.getByText('Submit Pre-check')).toBeInTheDocument();
-    expect(screen.getByText('Request Tour')).toBeInTheDocument();
-    expect(screen.getByText('Open Application')).toBeInTheDocument();
-    expect(screen.getByText('Submit Application')).toBeInTheDocument();
-    expect(screen.getByText('Open Lease')).toBeInTheDocument();
-    expect(screen.getByText('Sign Lease')).toBeInTheDocument();
+    expect(screen.getByText('View Trust Badge')).toBeDefined();
+    expect(screen.getByText('Start Pre-check')).toBeDefined();
+    expect(screen.getByText('Submit Pre-check')).toBeDefined();
+    expect(screen.getByText('Request Tour')).toBeDefined();
+    expect(screen.getByText('Open Application')).toBeDefined();
+    expect(screen.getByText('Submit Application')).toBeDefined();
+    expect(screen.getByText('Open Lease')).toBeDefined();
+    expect(screen.getByText('Sign Lease')).toBeDefined();
 
     // Check values are displayed
     Object.values(mockCounts).forEach(value => {
-      expect(screen.getByText(value.toString())).toBeInTheDocument();
+      expect(screen.getByText(value.toString())).toBeDefined();
     });
 
     // Check activity level badge
-    expect(screen.getByText('medium activity')).toBeInTheDocument();
+    expect(screen.getByText('medium activity')).toBeDefined();
   });
 
   it('should handle empty counts gracefully', () => {
@@ -74,6 +74,6 @@ describe('FunnelCard Component', () => {
     expect(zeroElements).toHaveLength(Object.values(emptyCounts).length);
 
     // Check low activity badge
-    expect(screen.getByText('low activity')).toBeInTheDocument();
+    expect(screen.getByText('low activity')).toBeDefined();
   });
 });
