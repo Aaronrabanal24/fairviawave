@@ -1,66 +1,53 @@
-import { PrismaClient } from '@prisma/client'
-import { appendEvent } from '../lib/events'
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
 
-const prisma = new PrismaClient()
+const STAGES = [
+  "view_trust",
+  "precheck_start",
+  "precheck_submit",
+  "tour_request",
+  "application_open",
+  "application_submit",
+  "lease_open",
+  "lease_signed",
+] as const;
 
 async function main() {
-  console.log('Start seeding...')
-
-  // Create sample units
-  const unit1 = await prisma.unit.create({
-    data: {
-      name: 'Sample Unit 1',
-      description: 'This is a draft unit for testing',
-      status: 'draft',
-    },
-  })
-
-  const unit2 = await prisma.unit.create({
-    data: {
-      name: 'Sample Unit 2',
-      description: 'This is a published unit for testing',
-      status: 'published',
+  // Ensure a dev unit exists
+  await prisma.unit.upsert({
+    where: { id: "dev-unit-1" },
+    update: {},
+    create: {
+      id: "dev-unit-1",
+      name: "Dev Unit One",
+      status: "published",
       publishedAt: new Date(),
     },
-  })
+  });
 
-  // Create sample events
-  await appendEvent({
-    unitId: unit1.id,
-    type: 'status_change',
-    content: 'Unit created',
-    visibility: 'internal',
-    actor: 'seed-script',
-    client: prisma,
-  })
+  // Clear old signals for a clean run
+  await prisma.signal.deleteMany({ where: { unitId: "dev-unit-1" } });
 
-  await appendEvent({
-    unitId: unit2.id,
-    type: 'status_change',
-    content: 'Unit published',
-    visibility: 'public',
-    actor: 'seed-script',
-    client: prisma,
-  })
+  // Insert a small, recent sample set across all stages
+  const now = Date.now();
+  const recent = (mins: number) => new Date(now - mins * 60_000);
 
-  await appendEvent({
-    unitId: unit2.id,
-    type: 'comment',
-    content: 'This is a public comment on the published unit',
-    visibility: 'public',
-    actor: 'seed-script',
-    client: prisma,
-  })
+  await prisma.signal.createMany({
+    data: [
+      { unitId: "dev-unit-1", type: "view_trust", createdAt: recent(5), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "view_trust", createdAt: recent(15), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "precheck_start", createdAt: recent(20), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "precheck_submit", createdAt: recent(25), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "tour_request", createdAt: recent(30), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "application_open", createdAt: recent(40), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "application_submit", createdAt: recent(50), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "lease_open", createdAt: recent(60), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+      { unitId: "dev-unit-1", type: "lease_signed", createdAt: recent(70), sessionId: "seed-session", ipHash: "seed-ip-hash" },
+    ],
+    skipDuplicates: true,
+  });
 
-  console.log('Seeding finished.')
-  console.log(`Created units: ${unit1.id}, ${unit2.id}`)
+  console.log("Seed complete.");
 }
 
-main()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+main().finally(() => prisma.$disconnect());

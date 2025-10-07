@@ -1,6 +1,12 @@
 'use client';
 // Optimized client-only utilities to reduce bundle size
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import { ReactNode, useMemo, useState, useTransition } from 'react';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 /**
  * Boolean state hook with convenience methods
