@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// Keep Prisma on Node, no prerender, and run near the DB
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 export type FunnelResponse = {
   counts: {
     view_trust: number

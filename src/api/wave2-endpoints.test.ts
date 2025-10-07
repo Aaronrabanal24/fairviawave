@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 describe('API Endpoints - Counts', () => {
   it('returns eight conversion stages', async () => {
@@ -12,7 +13,7 @@ describe('API Endpoints - Counts', () => {
     }));
 
     const url = new URL('http://test/api/signals/counts?unitId=demo-unit');
-    const request = new Request(url);
+    const request = new NextRequest(url);
     
     const response = await GET(request);
     const data = await response.json();

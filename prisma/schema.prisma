@@ -11,6 +11,17 @@ datasource db {
   directUrl = env("DIRECT_URL") // Used for migrations
 }
 
+enum SignalStage {
+  view_trust
+  precheck_start
+  precheck_submit
+  tour_request
+  application_open
+  application_submit
+  lease_open
+  lease_signed
+}
+
 model Unit {
   id          String    @id @default(cuid())
   name        String
