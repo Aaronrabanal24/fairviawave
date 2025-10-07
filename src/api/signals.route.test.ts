@@ -1,7 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { POST, GET } from '@/app/api/signals/route'
 import { signalDelegate } from '@/lib/delegates/signal'
-import { prisma } from '@/lib/db'
+
+// Mock prisma client instead of importing from lib/db
+const mockPrisma = {
+  unit: {
+    create: vi.fn(),
+    findFirst: vi.fn(),
+    deleteMany: vi.fn()
+  }
+}
 
 // Mock the signal delegate
 vi.mock('@/lib/delegates/signal', () => ({
@@ -25,13 +33,11 @@ function jsonRequest(url: string, method: string, body?: any) {
 describe('signals API POST', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
-    // Create test unit first
-    await prisma.unit.create({
-      data: {
-        id: 'test-unit-1',
-        name: 'Test Unit 1',
-        status: 'published'
-      }
+    // Mock creating test unit
+    mockPrisma.unit.create.mockResolvedValueOnce({
+      id: 'test-unit-1',
+      name: 'Test Unit 1',
+      status: 'published'
     })
   })
 
@@ -61,7 +67,7 @@ describe('signals API GET', () => {
   })
 
   afterEach(async () => {
-    await prisma.unit.deleteMany({ where: { id: 'test-unit-1' } })
+    mockPrisma.unit.deleteMany.mockResolvedValueOnce({ count: 1 })
   })
 
   it('returns analytics summary', async () => {
