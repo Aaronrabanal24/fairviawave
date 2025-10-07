@@ -10,7 +10,7 @@ export default function Head() {
 
   return (
     <>
-      {!!href && <link rel="preconnect" href={href} crossOrigin="" />}
+      {href && <link rel="preconnect" href={href} crossOrigin="" />}
       <meta name="viewport" content="width=device-width, initial-scale=1" />
     </>
   )

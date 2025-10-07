@@ -8,31 +8,19 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL") // Used for migrations
-}
-
-enum SignalStage {
-  view_trust
-  precheck_start
-  precheck_submit
-  tour_request
-  application_open
-  application_submit
-  lease_open
-  lease_signed
+  directUrl = env("DIRECT_URL")
 }
 
 model Unit {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
-  status      String    @default("draft") // draft, published
+  status      String   @default("draft") // draft, published
   publishedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  events  Event[]
-  signals Signal[]
+  events      Event[]
 
   @@index([status])
   @@index([publishedAt])
@@ -43,7 +31,7 @@ model Unit {
 model Event {
   id          String   @id @default(cuid())
   unitId      String
-  type        String // e.g., "status_change", "comment", "update"
+  type        String   // e.g., "status_change", "comment", "update"
   content     String?
   metadata    Json?
   visibility  String   @default("internal") // public, internal
@@ -53,7 +41,7 @@ model Event {
   chainHash   String
   createdAt   DateTime @default(now())
 
-  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
 
   @@index([unitId])
   @@index([unitId, ts])
@@ -62,29 +50,4 @@ model Event {
   @@index([ts])
   @@index([unitId, visibility])
   @@map("events")
-}
-
-model Signal {
-  id        String   @id @default(cuid())
-  unitId    String
-  type      String // ConversionSignalType: view_trust, precheck_start, etc.
-  stage     String? // Funnel stage: view_trust, precheck_start, etc.
-  sessionId String
-  userId    String?
-  ipHash    String
-  userAgent String?
-  score     Int      @default(0)
-  metadata  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  unit Unit @relation(fields: [unitId], references: [id], onDelete: Cascade)
-
-  @@index([unitId])
-  @@index([unitId, createdAt])
-  @@index([sessionId])
-  @@index([type])
-  @@index([createdAt])
-  @@index([ipHash])
-  @@map("signals")
 }

@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "openai.chatgpt",
-        "anthropic.claude-code"
+        "openai.chatgpt"
     ]
 }

@@ -84,10 +84,10 @@ export default async function PublicTimelinePage({
       <div className="max-w-2xl mx-auto">
         <header>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{data.name}</h1>
-          {!!data.description && (
+          {data.description && (
             <p className="mt-2 text-gray-700">{data.description}</p>
           )}
-          {!!data.publishedAt && (
+          {data.publishedAt && (
             <p className="mt-1 text-sm text-gray-500">Published {new Date(data.publishedAt).toLocaleString()}</p>
           )}
         </header>
@@ -112,7 +112,7 @@ export default async function PublicTimelinePage({
                         {new Date(e.timestamp).toLocaleString()}
                       </time>
                     </div>
-                    {!!e.content && (
+                    {e.content && (
                       <p className="mt-1 text-gray-800">{e.content}</p>
                     )}
                   </div>
@@ -122,7 +122,7 @@ export default async function PublicTimelinePage({
           )}
         </section>
 
-        {!!(data.pagination && data.pagination.totalPages > 1) && (
+        {data.pagination && data.pagination.totalPages > 1 && (
           <nav aria-label="Pagination" className="mt-6 flex items-center justify-between">
             <Link
               href={`/u/${encodeURIComponent(params.unitId)}?page=${Math.max(1, page - 1)}&page_size=${pageSize}`}

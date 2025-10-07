@@ -68,7 +68,7 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {!!message && (
+          {message && (
             <div className={`text-center text-sm ${message.includes('Check') ? 'text-green-600' : 'text-red-600'}`}>
               {message}
             </div>
