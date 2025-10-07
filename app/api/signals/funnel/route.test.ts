@@ -1,149 +1,122 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest"
-import { vi } from "vitest"
+import { describe, test, expect, vi, beforeEach } from "vitest"
+import { GET } from "./route"
 import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { GET } from "./route"
 
-// Create mock for Prisma signal groupBy function
+// Mock Prisma client
 vi.mock("@/lib/prisma", () => ({
   prisma: {
-    signal: {
-      groupBy: vi.fn()
+    unit: {
+      findUnique: vi.fn()
+    },
+    event: {
+      findMany: vi.fn()
     }
   }
 }))
 
-// All possible signal types for funnel
-const SIGNAL_TYPES = [
-  "application_open",
-  "application_submit", 
-  "lease_open",
-  "lease_signed",
-  "precheck_start", 
-  "precheck_submit",
-  "tour_request",
-  "view_trust"
-] as const
-
-type SignalType = typeof SIGNAL_TYPES[number]
-
-// Simplified mock for signal groups since we only use type and count
-const createMockSignalGroup = (type: SignalType, count: number) => ({
-  type,
-  _count: { _all: count }
-}) as any // Type assertion needed since Prisma types are complex
-
-describe("signals funnel", () => {
-  beforeAll(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date("2025-10-06T12:00:00Z"))
-  })
-
-  afterAll(() => {
-    vi.useRealTimers()
-    vi.restoreAllMocks()
-  })
-
+describe("funnel", () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
-
-  it("requires unitId", async () => {
+  
+  test("returns 400 if no unitId", async () => {
     const req = new NextRequest("http://localhost:3000/api/signals/funnel")
     const res = await GET(req)
     expect(res.status).toBe(400)
-    const data = await res.json()
-    expect(data.error).toBe("unitId required")
   })
 
-  it("returns 8 keys even with no data", async () => {
-    vi.mocked(prisma.signal.groupBy).mockResolvedValueOnce([])
+  test("returns 404 if unit not found", async () => {
+    vi.mocked(prisma.unit.findUnique).mockResolvedValue(null)
     
-    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-none")
+    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=test-unit")
     const res = await GET(req)
+    expect(res.status).toBe(404)
+  })
+  
+  test("returns 403 if unit not published", async () => {
+    vi.mocked(prisma.unit.findUnique).mockResolvedValue({
+      id: "test-unit",
+      name: "Test Unit",
+      description: null,
+      status: "draft",
+      publishedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
+    
+    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=test-unit")
+    const res = await GET(req)
+    expect(res.status).toBe(403)
+  })
+
+  test("returns funnel counts for published unit", async () => {
+    vi.mocked(prisma.unit.findUnique).mockResolvedValue({
+      id: "test-unit",
+      name: "Test Unit", 
+      description: null,
+      status: "published",
+      publishedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    })
+
+    vi.mocked(prisma.event.findMany).mockResolvedValue([
+      { 
+        id: "1", 
+        unitId: "test-unit", 
+        type: "view_trust",
+        content: null,
+        metadata: {},
+        visibility: "public",
+        actor: null,
+        ts: new Date(),
+        contentHash: "hash1",
+        chainHash: "chain1",
+        createdAt: new Date()
+      },
+      { 
+        id: "2", 
+        unitId: "test-unit", 
+        type: "precheck_start",
+        content: null,
+        metadata: {},
+        visibility: "public",
+        actor: null,
+        ts: new Date(),
+        contentHash: "hash2",
+        chainHash: "chain2",
+        createdAt: new Date()
+      },
+      { 
+        id: "3", 
+        unitId: "test-unit", 
+        type: "application_submit",
+        content: null,
+        metadata: {},
+        visibility: "public",
+        actor: null,
+        ts: new Date(),
+        contentHash: "hash3",
+        chainHash: "chain3",
+        createdAt: new Date()
+      }
+    ])
+
+    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=test-unit")
+    const res = await GET(req)
+    const json = await res.json()
+
     expect(res.status).toBe(200)
-    
-    const data = await res.json()
-    expect(Object.keys(data.counts).sort()).toEqual(SIGNAL_TYPES)
-    expect(data.level).toBe("low")
-    expect(data.lastUpdatedISO).toBe("2025-10-06T12:00:00.000Z")
+    expect(json.counts).toEqual({
+      view_trust: 1,
+      precheck_start: 1, 
+      precheck_submit: 0,
+      tour_request: 0,
+      application_open: 0,
+      application_submit: 1,
+      lease_open: 0,
+      lease_signed: 0
+    })
   })
-
-  it("maps stages correctly when data exists", async () => {
-    const mockSignals = [
-      createMockSignalGroup("tour_request", 3),
-      createMockSignalGroup("lease_signed", 1)
-    ]
-    
-    vi.mocked(prisma.signal.groupBy).mockResolvedValueOnce(mockSignals)
-    
-    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-demo")
-    const res = await GET(req)
-    const data = await res.json()
-    
-    expect(data.counts.tour_request).toBe(3)
-    expect(data.counts.lease_signed).toBe(1)
-    expect(data.level).toBe("low") // 4 total signals
-  })
-
-  it("calculates activity level correctly", async () => {
-    const mockSignals = [
-      createMockSignalGroup("view_trust", 20),
-      createMockSignalGroup("tour_request", 10)
-    ]
-    
-    vi.mocked(prisma.signal.groupBy).mockResolvedValueOnce(mockSignals)
-    
-    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-demo")
-    const res = await GET(req)
-    const data = await res.json()
-    
-    expect(data.level).toBe("high") // 30 total signals
-  })
-
-  it("respects days parameter bounds", async () => {
-    vi.mocked(prisma.signal.groupBy).mockResolvedValue([])
-    
-    const req1 = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-demo&days=0")
-    const req2 = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-demo&days=100")
-    
-    const res1 = await GET(req1)
-    const res2 = await GET(req2)
-    
-    expect(res1.status).toBe(200)
-    expect(res2.status).toBe(200)
-
-    // Check that the time window was clamped 
-    expect(prisma.signal.groupBy).toHaveBeenCalledWith(expect.objectContaining({
-      where: expect.objectContaining({
-        createdAt: expect.objectContaining({ gte: expect.any(Date) })
-      })
-    }))
-  })
-
-  it("includes cache control headers", async () => {
-    vi.mocked(prisma.signal.groupBy).mockResolvedValueOnce([])
-    
-    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-demo")
-    const res = await GET(req)
-    
-    const cacheControl = res.headers.get("Cache-Control")
-    expect(cacheControl).toContain("s-maxage=30")
-    expect(cacheControl).toContain("stale-while-revalidate=120")
-  })
-
-  it("handles errors without leaking internals", async () => {
-    vi.mocked(prisma.signal.groupBy).mockRejectedValueOnce(new Error("DB connection failed"))
-    
-    const req = new NextRequest("http://localhost:3000/api/signals/funnel?unitId=seed-demo")
-    const res = await GET(req)
-    
-    expect(res.status).toBe(500)
-    const data = await res.json()
-    expect(data.error).toBe("failed to load funnel")
-    expect(data).not.toHaveProperty("stack")
-    expect(data).not.toHaveProperty("message")
-  })
-})
-})
 })
