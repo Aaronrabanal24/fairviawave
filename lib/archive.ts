@@ -1,5 +1,5 @@
 import { readFile, writeFile } from 'fs/promises';
-import { signArchive } from './cryptography';
+import { signArchive, verifySignature } from './cryptography';
 
 /**
  * Interface for a file to be included in an archive
@@ -58,7 +58,8 @@ export async function createArchive(
   // Create archive structure
   const archive = {
     files: processedFiles,
-    metadata: JSON.stringify(metadata),
+    // Store metadata as an object (avoid double JSON encode/decode)
+    metadata,
     createdAt: new Date().toISOString()
   };
 
@@ -87,8 +88,7 @@ export async function verifyArchiveSignature(
   signature: string
 ): Promise<boolean> {
   try {
-    const expectedSignature = await signArchive(archiveBuffer);
-    return expectedSignature === signature;
+    return await verifySignature(archiveBuffer, signature);
   } catch (error) {
     console.error('Error verifying archive signature:', error);
     return false;
@@ -106,12 +106,13 @@ export async function extractArchiveMetadata(
 ): Promise<ArchiveMetadata> {
   try {
     const archive = JSON.parse(archiveBuffer.toString());
-    
+
     if (!archive.metadata) {
       throw new Error('Archive does not contain metadata');
     }
-    
-    return JSON.parse(archive.metadata);
+
+    // Metadata is already an object in the archive structure
+    return archive.metadata as ArchiveMetadata;
   } catch (error) {
     throw new Error(`Failed to parse archive metadata: ${(error as Error).message}`);
   }
@@ -129,8 +130,8 @@ export async function saveArchive(
   outputPath: string
 ): Promise<void> {
   try {
-    // Write archive file
-    await writeFile(outputPath, archiveResult.archiveBuffer.toString('binary'), 'binary');
+    // Write archive file directly from buffer (avoid string conversions)
+    await writeFile(outputPath, archiveResult.archiveBuffer);
     
     // Write signature file
     await writeFile(`${outputPath}.sig`, archiveResult.signature);

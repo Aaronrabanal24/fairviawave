@@ -12,9 +12,10 @@ import crypto from 'crypto';
 export async function signArchive(archiveBuffer: Buffer): Promise<string> {
   // In production, this key would be loaded from a secure key management system
   const signingKey = process.env.ARCHIVE_SIGNING_KEY || 'fairvia-demo-signing-key-2025';
-  
+
+  // Feed the buffer directly to avoid unnecessary buffer-to-string conversions
   const hmac = crypto.createHmac('sha256', signingKey);
-  hmac.update(archiveBuffer.toString('binary'), 'binary');
+  hmac.update(archiveBuffer);
   return hmac.digest('hex');
 }
 
@@ -46,7 +47,8 @@ export async function verifySignature(
  */
 export function generateHash(buffer: Buffer): string {
   const hash = crypto.createHash('sha256');
-  hash.update(buffer.toString('binary'), 'binary');
+  // Update hash with raw buffer (faster, avoids encoding pitfalls)
+  hash.update(buffer);
   return hash.digest('hex');
 }
 
