@@ -82,6 +82,6 @@ export const resetMockSupabaseClient = () => {
   createClient.mockClear()
 }
 
-resetMockSupabaseClient()
+// resetMockSupabaseClient() // Removed to avoid unexpected side effects; use afterEach in setup.ts
 
 export default mockSupabaseClient
