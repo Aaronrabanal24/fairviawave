@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { NextResponse } from 'next/server';
 import { signalDelegate } from '@/lib/delegates/signal';
 import { scoreBucket } from '@/lib/score';
@@ -63,7 +62,3 @@ export async function GET(request: Request) {
     );
   }
 }
-=======
-// Backward compatibility alias to funnel endpoint
-export { GET as GET } from "@/app/api/signals/funnel/route"
->>>>>>> parent of 7133397 (Fix: Add force-dynamic directive to signals/counts route to prevent static rendering error)
