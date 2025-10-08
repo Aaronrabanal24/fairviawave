@@ -1,0 +1,114 @@
+{
+  "name": "Fairvia Wave Enhanced Development Environment",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "prisma.showPrismaDataPlatformNotification": false
+  },
+  "extensions": [
+    // Core Development (aligned with your stack)
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ms-vscode.vscode-typescript-next",
+    "bradlc.vscode-tailwindcss",
+    "ms-playwright.playwright",
+    
+    // Database & ORM (Prisma/Supabase focused)
+    "prisma.prisma",
+    "supabase.supabase-vscode",
+    "postgresql.pgsql",
+    "cweijan.vscode-postgresql-client2",
+    
+    // AI Development (building on your OpenAI usage)
+    "github.copilot",
+    "github.copilot-chat",
+    "ms-toolsai.jupyter",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    
+    // Next.js & React Development
+    "ms-vscode.vscode-json",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    
+    // Testing (Vitest/Playwright focused)
+    "zixuanchen.vitest-explorer",
+    "ms-vscode.test-adapter-converter",
+    
+    // Development Utilities
+    "ms-azuretools.vscode-docker",
+    "mutantdino.resourcemonitor",
+    "ms-vsliveshare.vsliveshare",
+    "eamodio.gitlens",
+    "github.vscode-github-actions",
+    "redhat.vscode-yaml",
+    "mikestead.dotenv",
+    "yoavbls.pretty-ts-errors"
+  ],
+  "forwardPorts": [3000, 3001, 5432, 54323, 9229],
+  "postCreateCommand": "npm install && npx prisma generate",
+  "remoteUser": "node",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/postgres:1": {
+      "version": "15",
+      "database": "fairvia",
+      "username": "postgres",
+      "password": "postgres"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "ppa": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "playwright.reuseBrowser": true,
+        "vitest.enable": true
+      }
+    }
+  },
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js App",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Test Server",
+      "onAutoForward": "silent"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "54323": {
+      "label": "Supabase Local",
+      "onAutoForward": "silent"
+    },
+    "9229": {
+      "label": "Node.js Debug",
+      "onAutoForward": "silent"
+    }
+  }
+}
