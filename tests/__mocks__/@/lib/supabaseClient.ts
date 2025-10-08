@@ -16,20 +16,20 @@ export type MockQueryBuilder = {
 }
 
 const createQueryBuilder = (): MockQueryBuilder => {
-  const builder: Partial<Record<keyof MockQueryBuilder, ReturnType<typeof vi.fn>>> = {}
-
-  const chain = () => builder
-
-  builder.select = vi.fn(() => chain())
-  builder.insert = vi.fn(() => chain())
-  builder.update = vi.fn(() => chain())
-  builder.delete = vi.fn(() => chain())
-  builder.eq = vi.fn(() => chain())
-  builder.in = vi.fn(() => chain())
-  builder.single = vi.fn(() => Promise.resolve(defaultOk))
-  builder.maybeSingle = vi.fn(() => Promise.resolve(defaultOk))
-
-  return builder as MockQueryBuilder
+  // Define the builder object with all properties assigned upfront
+  let builder: MockQueryBuilder;
+  const chain = () => builder;
+  builder = {
+    select: vi.fn(() => chain()),
+    insert: vi.fn(() => chain()),
+    update: vi.fn(() => chain()),
+    delete: vi.fn(() => chain()),
+    eq: vi.fn(() => chain()),
+    in: vi.fn(() => chain()),
+    single: vi.fn(() => Promise.resolve(defaultOk)),
+    maybeSingle: vi.fn(() => Promise.resolve(defaultOk)),
+  };
+  return builder;
 }
 
 export type MockStorageBucket = ReturnType<typeof createStorageBucket>
