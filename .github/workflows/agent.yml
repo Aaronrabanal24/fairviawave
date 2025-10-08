@@ -1,0 +1,42 @@
+name: Agent PR Review
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches-ignore: [main]              # never on main
+    paths:
+      - "app/**"
+      - "lib/**"
+      - "tests/**"
+      - "e2e/**"
+      - "scripts/**"
+      - ".github/workflows/**"
+concurrency:
+  group: agent-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+jobs:
+  agent:
+    if: >
+      github.event.pull_request.draft == true ||
+      contains(join(github.event.pull_request.labels.*.name, ','), 'agent:enabled') &&
+      github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: corepack enable && pnpm i --frozen-lockfile
+      - name: Collect PR labels
+        id: labels
+        run: echo "PR_LABELS=$(jq -r '.pull_request.labels | map(.name) | join(",")' $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
+      - name: Run Auto-Maintainer Agent (dry-run by default)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AGENT_MODEL: gpt-4.1
+          AGENT_SYSTEM_PROMPT: ${{ secrets.AGENT_SYSTEM_PROMPT }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          AGENT_DRY_RUN: "true"         # start safe
+        run: node scripts/agent/run.mjs
