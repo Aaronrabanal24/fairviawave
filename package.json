@@ -10,11 +10,12 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed": "prisma db seed",
+    "seed:test": "tsx prisma/seed-test.ts",
     "postinstall": "prisma generate",
     "test": "vitest run",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test",
-    "e2e": "playwright test",
+    "test:e2e": "dotenv -e .env.test -- concurrently \"next dev -p 3001\" \"wait-on tcp:3001 && playwright test\"",
+    "e2e": "dotenv -e .env.test -- npm run seed:test && dotenv -e .env.test -- playwright test",
     "check:old-tests": "git grep -n \"analyze(page\" -- e2e && echo \"Found legacy analyze(page, …) in e2e\" && exit 1 || echo \"No legacy analyze(page) calls\""
   },
   "prisma": {
@@ -38,6 +39,8 @@
     "@types/react": "18.2.48",
     "@types/react-dom": "18.2.18",
     "autoprefixer": "10.4.19",
+    "concurrently": "^9.2.1",
+    "dotenv-cli": "^10.0.0",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.4",
     "openai": "^4.28.0",
@@ -47,7 +50,8 @@
     "ts-node": "10.9.2",
     "tsx": "^4.20.6",
     "typescript": "5.4.5",
-    "vitest": "^1.6.0"
+    "vitest": "^1.6.0",
+    "wait-on": "^9.0.1"
   },
   "engines": {
     "node": ">=18"

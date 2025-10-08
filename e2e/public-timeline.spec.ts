@@ -5,12 +5,35 @@ test('public timeline renders and paginates', async ({ page }) => {
   if (!unitId) throw new Error('PUBLIC_UNIT_ID env var is missing')
 
   // First page should load
-  await page.goto(`/u/${unitId}`)
+  const url = `/u/${unitId}`
+  console.log('Loading URL:', url)
+  const response = await page.goto(url, { waitUntil: 'networkidle' })
+  console.log('Page loaded with status:', response?.status())
+  
+  // Log any errors in the console
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      console.log('Browser error:', msg.text())
+    }
+  })
+
+  // Wait for content to load and log network requests
+  page.on('request', req => console.log('Request:', req.url()))
+  page.on('response', res => console.log('Response:', res.url(), res.status()))
+  await new Promise(resolve => setTimeout(resolve, 5000))
+  
+  console.log('Checking for heading')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 
-  // Either a list is visible (events exist) or "No public activity" message
+  console.log('Checking for list or empty message')
   const hasList = await page.getByRole('list').isVisible().catch(() => false)
   const hasEmptyMessage = await page.getByText(/no public activity yet/i).isVisible().catch(() => false)
+
+  // Log page content for debugging
+  const content = await page.content()
+  console.log('Page content:', content)
+
+  console.log('List visible:', hasList, 'Empty message visible:', hasEmptyMessage)
   expect(hasList || hasEmptyMessage).toBeTruthy()
 
   // Test pagination navigation (if there are events)
