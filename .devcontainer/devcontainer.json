@@ -2,72 +2,21 @@
   "name": "Fairvia Wave Enhanced Development Environment",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "."
   },
-  "settings": {
-    "terminal.integrated.defaultProfile.linux": "bash",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": true
-    },
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "typescript.enablePromptUseWorkspaceTsdk": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "prisma.showPrismaDataPlatformNotification": false
-  },
-  "extensions": [
-    // Core Development (aligned with your stack)
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode",
-    "ms-vscode.vscode-typescript-next",
-    "bradlc.vscode-tailwindcss",
-    "ms-playwright.playwright",
-    
-    // Database & ORM (Prisma/Supabase focused)
-    "prisma.prisma",
-    "supabase.supabase-vscode",
-    "postgresql.pgsql",
-    "cweijan.vscode-postgresql-client2",
-    
-    // AI Development (building on your OpenAI usage)
-    "github.copilot",
-    "github.copilot-chat",
-    "ms-toolsai.jupyter",
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    
-    // Next.js & React Development
-    "ms-vscode.vscode-json",
-    "formulahendry.auto-rename-tag",
-    "christian-kohler.path-intellisense",
-    
-    // Testing (Vitest/Playwright focused)
-    "zixuanchen.vitest-explorer",
-    "ms-vscode.test-adapter-converter",
-    
-    // Development Utilities
-    "ms-azuretools.vscode-docker",
-    "mutantdino.resourcemonitor",
-    "ms-vsliveshare.vsliveshare",
-    "eamodio.gitlens",
-    "github.vscode-github-actions",
-    "redhat.vscode-yaml",
-    "mikestead.dotenv",
-    "yoavbls.pretty-ts-errors"
-  ],
+  // Moved settings/extensions into customizations.vscode per schema
   "forwardPorts": [3000, 3001, 5432, 54323, 9229],
-  "postCreateCommand": "npm install && npx prisma generate",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "containerEnv": {
+    "DATABASE_URL": "postgresql://postgres:postgres@postgres:5432/fairvia_test?schema=public",
+    "DIRECT_URL": "postgresql://postgres:postgres@postgres:5432/fairvia_test?schema=public"
+  },
   "remoteUser": "node",
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "18"
     },
-    "ghcr.io/devcontainers/features/postgres:1": {
-      "version": "15",
-      "database": "fairvia",
-      "username": "postgres",
-      "password": "postgres"
-    },
+    // Removed built-in Postgres feature (was failing to fetch). Using docker compose defined service instead.
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest",
@@ -83,10 +32,46 @@
   "customizations": {
     "vscode": {
       "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": ["source.fixAll.eslint"],
+        "typescript.tsdk": "node_modules/typescript/lib",
+        "typescript.enablePromptUseWorkspaceTsdk": true,
+        "prisma.showPrismaDataPlatformNotification": false,
         "typescript.preferences.importModuleSpecifier": "relative",
         "playwright.reuseBrowser": true,
         "vitest.enable": true
-      }
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-playwright.playwright",
+        "prisma.prisma",
+        "supabase.supabase-vscode",
+        "postgresql.pgsql",
+        "cweijan.vscode-postgresql-client2",
+        "github.copilot",
+        "github.copilot-chat",
+        "ms-toolsai.jupyter",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-vscode.vscode-json",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "zixuanchen.vitest-explorer",
+        "ms-vscode.test-adapter-converter",
+        "ms-azuretools.vscode-docker",
+        "mutantdino.resourcemonitor",
+        "ms-vsliveshare.vsliveshare",
+        "eamodio.gitlens",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml",
+        "mikestead.dotenv",
+        "yoavbls.pretty-ts-errors",
+        "openai.chatgpt"
+      ]
     }
   },
   "portsAttributes": {
